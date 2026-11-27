@@ -1,0 +1,921 @@
+{
+  "cluster_id": 4,
+  "cluster_name": "Groups",
+  "feature_map": 1,
+  "state_variables": [
+    {
+      "name": "NameSupport",
+      "attribute_id": 0,
+      "type": "NameSupportBitmap"
+    }
+  ],
+  "states": [
+    {
+      "id": "group_names_supported",
+      "description": "Group names feature is supported (NameSupport bit 7 is set, matching FeatureMap = 1).",
+      "conditions": [
+        {
+          "variable": "NameSupport",
+          "op": "eq",
+          "value": "128"
+        }
+      ],
+      "unaccepted_values": [
+        "AddGroup(GroupID=0 or GroupName length > 16) -> CONSTRAINT_ERROR",
+        "ViewGroup(GroupID=0) -> CONSTRAINT_ERROR",
+        "GetGroupMembership(GroupList element 0) -> CONSTRAINT_ERROR",
+        "RemoveGroup(GroupID=0) -> CONSTRAINT_ERROR",
+        "AddGroupIfIdentifying(GroupID=0 or GroupName length > 16) -> CONSTRAINT_ERROR"
+      ]
+    },
+    {
+      "id": "group_names_not_supported",
+      "description": "Group names feature is not supported (NameSupport bit 7 is 0).",
+      "conditions": [
+        {
+          "variable": "NameSupport",
+          "op": "eq",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": [
+        "AddGroup(GroupID=0, GroupName=*)",
+        "AddGroup(GroupID=*, GroupName=length>16)"
+      ]
+    },
+    {
+      "id": "group_member_named",
+      "description": "Endpoint is a member of GroupID and GroupName is stored/updated.",
+      "conditions": [
+        {
+          "variable": "NameSupport",
+          "op": "eq",
+          "value": "128"
+        },
+        {
+          "variable": "IsGroupMember",
+          "op": "eq",
+          "value": "true"
+        },
+        {
+          "variable": "StoredGroupName",
+          "op": "eq",
+          "value": "GroupName"
+        }
+      ],
+      "unaccepted_values": [
+        "AddGroup(GroupID=0, GroupName=*)",
+        "AddGroup(GroupID=*, GroupName=length>16)"
+      ]
+    },
+    {
+      "id": "group_member_unnamed",
+      "description": "Endpoint is a member of GroupID and GroupName is ignored because group names are not supported.",
+      "conditions": [
+        {
+          "variable": "NameSupport",
+          "op": "eq",
+          "value": "0"
+        },
+        {
+          "variable": "IsGroupMember",
+          "op": "eq",
+          "value": "true"
+        }
+      ],
+      "unaccepted_values": [
+        "AddGroup(GroupID=0, GroupName=*)",
+        "AddGroup(GroupID=*, GroupName=length>16)"
+      ]
+    },
+    {
+      "id": "group_table_full",
+      "description": "Endpoint is not a member of GroupID and no resources are available to add group membership.",
+      "conditions": [
+        {
+          "variable": "AvailableGroupTableResources",
+          "op": "eq",
+          "value": "0"
+        },
+        {
+          "variable": "IsGroupMember",
+          "op": "eq",
+          "value": "false"
+        }
+      ],
+      "unaccepted_values": [
+        "AddGroup(GroupID=1..65535, GroupName=0..16)"
+      ]
+    },
+    {
+      "id": "group_missing_security_material",
+      "description": "Node requires security material for GroupID and that material does not exist.",
+      "conditions": [
+        {
+          "variable": "SecurityMaterialRequired",
+          "op": "eq",
+          "value": "true"
+        },
+        {
+          "variable": "SecurityMaterialPresent",
+          "op": "eq",
+          "value": "false"
+        }
+      ],
+      "unaccepted_values": [
+        "AddGroup(GroupID=1..65535, GroupName=0..16)"
+      ]
+    },
+    {
+      "id": "group_member",
+      "description": "Server endpoint is a member of the group indicated by GroupID.",
+      "conditions": [
+        {
+          "variable": "GroupID",
+          "op": "in",
+          "value": "GroupTable"
+        }
+      ],
+      "unaccepted_values": [
+        "GroupID=0"
+      ]
+    },
+    {
+      "id": "not_group_member",
+      "description": "Server endpoint is not a member of the group indicated by GroupID.",
+      "conditions": [
+        {
+          "variable": "GroupID",
+          "op": "ne",
+          "value": "GroupTable"
+        }
+      ],
+      "unaccepted_values": [
+        "GroupID=0"
+      ]
+    },
+    {
+      "id": "endpoint_in_group",
+      "description": "Server endpoint is a member of one or more groups in the Group Table.",
+      "conditions": [
+        {
+          "variable": "GroupTable",
+          "op": "ne",
+          "value": "[]"
+        }
+      ],
+      "unaccepted_values": []
+    },
+    {
+      "id": "endpoint_not_in_group",
+      "description": "Server endpoint is not a member of any group in the Group Table.",
+      "conditions": [
+        {
+          "variable": "GroupTable",
+          "op": "eq",
+          "value": "[]"
+        }
+      ],
+      "unaccepted_values": []
+    },
+    {
+      "id": "member_of_group",
+      "description": "Server endpoint is a member of the group indicated by GroupID",
+      "conditions": [
+        {
+          "variable": "GroupMembership",
+          "op": "eq",
+          "value": "true"
+        }
+      ],
+      "unaccepted_values": [
+        "GroupID=0"
+      ]
+    },
+    {
+      "id": "not_member_of_group",
+      "description": "Server endpoint is not a member of the group indicated by GroupID",
+      "conditions": [
+        {
+          "variable": "GroupMembership",
+          "op": "eq",
+          "value": "false"
+        }
+      ],
+      "unaccepted_values": [
+        "GroupID=0"
+      ]
+    },
+    {
+      "id": "has_group_memberships",
+      "description": "Server endpoint has one or more group memberships in the Group Table.",
+      "conditions": [
+        {
+          "variable": "GroupMemberships",
+          "op": "gt",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": []
+    },
+    {
+      "id": "no_group_memberships",
+      "description": "Server endpoint has no group memberships in the Group Table.",
+      "conditions": [
+        {
+          "variable": "GroupMemberships",
+          "op": "eq",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": []
+    },
+    {
+      "id": "not_identifying",
+      "description": "Server endpoint is not currently identifying itself",
+      "conditions": [
+        {
+          "variable": "Identifying",
+          "op": "eq",
+          "value": "false"
+        }
+      ],
+      "unaccepted_values": []
+    },
+    {
+      "id": "identifying",
+      "description": "Server endpoint is currently identifying itself",
+      "conditions": [
+        {
+          "variable": "Identifying",
+          "op": "eq",
+          "value": "true"
+        }
+      ],
+      "unaccepted_values": [
+        "GroupID: 0",
+        "GroupName: length > 16"
+      ]
+    },
+    {
+      "id": "group_member_with_name",
+      "description": "Server endpoint is a member of GroupID with GroupName stored in Group Table",
+      "conditions": [
+        {
+          "variable": "NameSupport",
+          "op": "eq",
+          "value": "128"
+        },
+        {
+          "variable": "GroupMembership",
+          "op": "eq",
+          "value": "true"
+        },
+        {
+          "variable": "GroupName",
+          "op": "eq",
+          "value": "GroupName"
+        }
+      ],
+      "unaccepted_values": [
+        "GroupID: 0",
+        "GroupName: length > 16"
+      ]
+    },
+    {
+      "id": "identifying_already_member",
+      "description": "Server endpoint is identifying itself and is already a member of GroupID",
+      "conditions": [
+        {
+          "variable": "Identifying",
+          "op": "eq",
+          "value": "true"
+        },
+        {
+          "variable": "GroupMembership",
+          "op": "eq",
+          "value": "true"
+        }
+      ],
+      "unaccepted_values": [
+        "GroupID: 0",
+        "GroupName: length > 16"
+      ]
+    },
+    {
+      "id": "identifying_missing_security_material",
+      "description": "Server endpoint is identifying itself but lacks required security material for GroupID",
+      "conditions": [
+        {
+          "variable": "Identifying",
+          "op": "eq",
+          "value": "true"
+        },
+        {
+          "variable": "SecurityMaterialAvailable",
+          "op": "eq",
+          "value": "false"
+        }
+      ],
+      "unaccepted_values": [
+        "GroupID: 0",
+        "GroupName: length > 16"
+      ]
+    },
+    {
+      "id": "identifying_resource_exhausted",
+      "description": "Server endpoint is identifying itself but has no available resources to add group membership",
+      "conditions": [
+        {
+          "variable": "Identifying",
+          "op": "eq",
+          "value": "true"
+        },
+        {
+          "variable": "AvailableGroupResources",
+          "op": "eq",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": [
+        "GroupID: 0",
+        "GroupName: length > 16"
+      ]
+    }
+  ],
+  "transitions": [
+    {
+      "id": "t0_AddGroup",
+      "from_state": "group_names_supported",
+      "to_state": "group_member_named",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "AddGroup",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "GroupName",
+          "type": "string",
+          "constraint": "0..16",
+          "invalid_values": [
+            "12345678901234567"
+          ]
+        }
+      ],
+      "guard": "GroupID >= 1 and length(GroupName) <= 16 and security material exists (if required) and resources available (if not already member); updates GroupName if already a member",
+      "expected_error": null
+    },
+    {
+      "id": "t1_AddGroup",
+      "from_state": "group_names_not_supported",
+      "to_state": "group_member_unnamed",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "AddGroup",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "GroupName",
+          "type": "string",
+          "constraint": "0..16",
+          "invalid_values": [
+            "12345678901234567"
+          ]
+        }
+      ],
+      "guard": "GroupID >= 1 and length(GroupName) <= 16 and security material exists (if required) and resources available (if not already member); GroupName is ignored",
+      "expected_error": null
+    },
+    {
+      "id": "t2_AddGroup",
+      "from_state": "group_member_named",
+      "to_state": "group_member_named",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "AddGroup",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "GroupName",
+          "type": "string",
+          "constraint": "0..16",
+          "invalid_values": [
+            "12345678901234567"
+          ]
+        }
+      ],
+      "guard": "GroupID >= 1 and length(GroupName) <= 16 and endpoint is already a member of GroupID; updates GroupName",
+      "expected_error": null
+    },
+    {
+      "id": "t3_AddGroup",
+      "from_state": "group_names_supported",
+      "to_state": "group_names_supported",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "AddGroup",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "GroupName",
+          "type": "string",
+          "constraint": "0..16",
+          "invalid_values": [
+            "12345678901234567"
+          ]
+        }
+      ],
+      "guard": "GroupID < 1 or length(GroupName) > 16",
+      "expected_error": "CONSTRAINT_ERROR"
+    },
+    {
+      "id": "t4_AddGroup",
+      "from_state": "group_missing_security_material",
+      "to_state": "group_missing_security_material",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "AddGroup",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "GroupName",
+          "type": "string",
+          "constraint": "0..16",
+          "invalid_values": [
+            "12345678901234567"
+          ]
+        }
+      ],
+      "guard": "GroupID >= 1 and length(GroupName) <= 16 and required security material does not exist for GroupID",
+      "expected_error": "UNSUPPORTED_ACCESS"
+    },
+    {
+      "id": "t5_AddGroup",
+      "from_state": "group_table_full",
+      "to_state": "group_table_full",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "AddGroup",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "GroupName",
+          "type": "string",
+          "constraint": "0..16",
+          "invalid_values": [
+            "12345678901234567"
+          ]
+        }
+      ],
+      "guard": "GroupID >= 1 and length(GroupName) <= 16 and no available resources to add membership for GroupID",
+      "expected_error": "RESOURCE_EXHAUSTED"
+    },
+    {
+      "id": "t6_ViewGroup",
+      "from_state": "group_names_supported",
+      "to_state": "group_names_supported",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "ViewGroup",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "min 1",
+          "invalid_values": [
+            "0"
+          ]
+        }
+      ],
+      "guard": null,
+      "expected_error": "CONSTRAINT_ERROR"
+    },
+    {
+      "id": "t7_ViewGroup",
+      "from_state": "group_names_not_supported",
+      "to_state": "group_names_not_supported",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "ViewGroup",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "min 1",
+          "invalid_values": [
+            "0"
+          ]
+        }
+      ],
+      "guard": null,
+      "expected_error": "CONSTRAINT_ERROR"
+    },
+    {
+      "id": "t8_ViewGroup",
+      "from_state": "group_member",
+      "to_state": "group_member",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "ViewGroup",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "min 1",
+          "invalid_values": [
+            "0"
+          ]
+        }
+      ],
+      "guard": "server endpoint is a member of GroupID",
+      "expected_error": "CONSTRAINT_ERROR"
+    },
+    {
+      "id": "t9_ViewGroup",
+      "from_state": "not_group_member",
+      "to_state": "not_group_member",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "ViewGroup",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "min 1",
+          "invalid_values": [
+            "0"
+          ]
+        }
+      ],
+      "guard": "server endpoint is not a member of GroupID; status is NOT_FOUND for valid GroupID",
+      "expected_error": "CONSTRAINT_ERROR"
+    },
+    {
+      "id": "t10_GetGroupMembership",
+      "from_state": "endpoint_in_group",
+      "to_state": "endpoint_in_group",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "GetGroupMembership",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupList",
+          "type": "list[group-id]",
+          "constraint": "all[min 1]",
+          "invalid_values": [
+            "[0]"
+          ]
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t11_GetGroupMembership",
+      "from_state": "endpoint_not_in_group",
+      "to_state": "endpoint_not_in_group",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "GetGroupMembership",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupList",
+          "type": "list[group-id]",
+          "constraint": "all[min 1]",
+          "invalid_values": [
+            "[0]"
+          ]
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t12_RemoveGroup",
+      "from_state": "member_of_group",
+      "to_state": "not_member_of_group",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "RemoveGroup",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        }
+      ],
+      "guard": null,
+      "expected_error": "CONSTRAINT_ERROR"
+    },
+    {
+      "id": "t13_RemoveGroup",
+      "from_state": "not_member_of_group",
+      "to_state": "not_member_of_group",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "RemoveGroup",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        }
+      ],
+      "guard": "endpoint is not a member of GroupID",
+      "expected_error": "NOT_FOUND"
+    },
+    {
+      "id": "t14_RemoveAllGroups",
+      "from_state": "has_group_memberships",
+      "to_state": "no_group_memberships",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "RemoveAllGroups",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t15_RemoveAllGroups",
+      "from_state": "no_group_memberships",
+      "to_state": "no_group_memberships",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "RemoveAllGroups",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t16_AddGroupIfIdentifying",
+      "from_state": "not_identifying",
+      "to_state": "not_identifying",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "AddGroupIfIdentifying",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "GroupName",
+          "type": "string",
+          "constraint": "length 0..16",
+          "invalid_values": [
+            "length > 16"
+          ]
+        }
+      ],
+      "guard": "Server is not currently identifying itself",
+      "expected_error": null
+    },
+    {
+      "id": "t17_AddGroupIfIdentifying",
+      "from_state": "identifying",
+      "to_state": "group_member",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "AddGroupIfIdentifying",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "GroupName",
+          "type": "string",
+          "constraint": "length 0..16",
+          "invalid_values": [
+            "length > 16"
+          ]
+        }
+      ],
+      "guard": "Server is identifying itself, fields within constraints, security material exists, resources available, and endpoint is not yet a member of GroupID",
+      "expected_error": null
+    },
+    {
+      "id": "t18_AddGroupIfIdentifying",
+      "from_state": "group_names_supported",
+      "to_state": "group_member_with_name",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "AddGroupIfIdentifying",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "GroupName",
+          "type": "string",
+          "constraint": "length 0..16",
+          "invalid_values": [
+            "length > 16"
+          ]
+        }
+      ],
+      "guard": "Server is identifying itself, fields within constraints, security material exists, and resources available",
+      "expected_error": null
+    },
+    {
+      "id": "t19_AddGroupIfIdentifying",
+      "from_state": "identifying_already_member",
+      "to_state": "identifying_already_member",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "AddGroupIfIdentifying",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "GroupName",
+          "type": "string",
+          "constraint": "length 0..16",
+          "invalid_values": [
+            "length > 16"
+          ]
+        }
+      ],
+      "guard": "Server is identifying itself, fields within constraints, security material exists, and endpoint is already a member of GroupID",
+      "expected_error": null
+    },
+    {
+      "id": "t20_AddGroupIfIdentifying",
+      "from_state": "identifying",
+      "to_state": "identifying",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "AddGroupIfIdentifying",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "GroupName",
+          "type": "string",
+          "constraint": "length 0..16",
+          "invalid_values": [
+            "length > 16"
+          ]
+        }
+      ],
+      "guard": "Server is identifying itself and GroupID < 1 or length(GroupName) > 16",
+      "expected_error": "CONSTRAINT_ERROR"
+    },
+    {
+      "id": "t21_AddGroupIfIdentifying",
+      "from_state": "identifying_missing_security_material",
+      "to_state": "identifying_missing_security_material",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "AddGroupIfIdentifying",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "GroupName",
+          "type": "string",
+          "constraint": "length 0..16",
+          "invalid_values": [
+            "length > 16"
+          ]
+        }
+      ],
+      "guard": "Server is identifying itself, fields within constraints, and required security material for GroupID does not exist",
+      "expected_error": "UNSUPPORTED_ACCESS"
+    },
+    {
+      "id": "t22_AddGroupIfIdentifying",
+      "from_state": "identifying_resource_exhausted",
+      "to_state": "identifying_resource_exhausted",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "AddGroupIfIdentifying",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "GroupName",
+          "type": "string",
+          "constraint": "length 0..16",
+          "invalid_values": [
+            "length > 16"
+          ]
+        }
+      ],
+      "guard": "Server is identifying itself, fields within constraints, security material exists, endpoint is not a member of GroupID, and no resources are available",
+      "expected_error": "RESOURCE_EXHAUSTED"
+    }
+  ],
+  "models": [
+    "gemini-4-hydrogen"
+  ],
+  "spec": "matter1.4-cluster.pdf"
+}

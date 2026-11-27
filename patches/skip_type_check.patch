@@ -1,0 +1,141 @@
+diff --git a/matter_server/common/helpers/util.py b/matter_server/common/helpers/util.py
+index ade69a5..7bca447 100644
+--- a/matter_server/common/helpers/util.py
++++ b/matter_server/common/helpers/util.py
+@@ -26,9 +26,11 @@ from typing import (
+ )
+ 
+ from chip.clusters.Types import Nullable, NullValue
+-from chip.tlv import float32, uint
++from chip.tlv import TLVWriter, float32, uint
+ 
+ if TYPE_CHECKING:
++    from collections.abc import Callable
++
+     from _typeshed import DataclassInstance
+     from chip.clusters.ClusterObjects import (
+         ClusterAttributeDescriptor,
+@@ -266,6 +268,51 @@ def parse_value(
+     return value
+ 
+ 
++# Datatypes the TLVWriter of chip needs to encode the requested TLV element type.
++TLV_TYPES: dict[str, Callable[[Any], Any]] = {
++    "int": int,
++    "uint": lambda v: uint(int(v)),
++    "bool": bool,
++    "float": float32,
++    "double": float,
++    "str": str,
++    "bytes": lambda v: b64decode(v) if isinstance(v, str) else bytes(v),
++    "null": lambda _v: None,
++}
++
++
++def flashfuzz_tlv_encoder(value: Any, value_type: str) -> Callable:
++    """ToTLV replacement to encode 'value' exactly as 'value_type'."""
++    if value_type not in TLV_TYPES:
++        raise ValueError(f"Unknown TLV type {value_type!r}, valid: {sorted(TLV_TYPES)}")
++    tlv_value = TLV_TYPES[value_type](value)
++
++    def encode(tag: int | None, _value: Any = None) -> bytes:
++        writer = TLVWriter()
++        writer.put(tag, tlv_value)
++        return bytes(writer.encoding)
++
++    return encode
++
++
++def flashfuzz_command_encoder(fields: list) -> Callable:
++    """ToTLV replacement for encoding a command exactly as 'fields'.
++
++    Format: '[tag, value, value_type]'.
++    """
++    for _tag, _value, value_type in fields:
++        if value_type not in TLV_TYPES:
++            raise ValueError(f"Unknown TLV type {value_type!r}, valid: {sorted(TLV_TYPES)}")
++    struct = {int(tag): TLV_TYPES[value_type](value) for tag, value, value_type in fields}
++
++    def encode() -> bytes:
++        writer = TLVWriter()
++        writer.put(None, struct)
++        return bytes(writer.encoding)
++
++    return encode
++
++
+ def dataclass_from_dict(
+     cls: type[_T],
+     dict_obj: dict,
+diff --git a/matter_server/server/device_controller.py b/matter_server/server/device_controller.py
+index 9df276c..f5e8154 100644
+--- a/matter_server/server/device_controller.py
++++ b/matter_server/server/device_controller.py
+@@ -62,6 +62,8 @@ from ..common.helpers.json import JSON_DECODE_EXCEPTIONS, json_loads
+ from ..common.helpers.util import (
+     create_attribute_path_from_attribute,
+     dataclass_from_dict,
++    flashfuzz_command_encoder,
++    flashfuzz_tlv_encoder,
+     parse_attribute_path,
+     parse_value,
+ )
+@@ -695,13 +697,22 @@ class MatterDeviceController:
+         response_type: Any | None = None,
+         timed_request_timeout_ms: int | None = None,
+         interaction_timeout_ms: int | None = None,
++        raw_fields: list | None = None,
+     ) -> Any:
+-        """Send a command to a Matter node/device."""
++        """Send a command to a Matter node/device.
++
++        The addition of 'raw_fields' allows a fuzzer to send commands with arbitrary TLV fields, bypassing type checking.
++        """
+         if (node := self._nodes.get(node_id)) is None or not node.available:
+             raise NodeNotReady(f"Node {node_id} is not (yet) available.")
+         cluster_cls: Cluster = ALL_CLUSTERS[cluster_id]
+         command_cls = getattr(cluster_cls.Commands, command_name)
+-        command = dataclass_from_dict(command_cls, payload, allow_sdk_types=True)
++        if raw_fields is not None:
++            # Use custom TLV encoder
++            command = command_cls()
++            command.ToTLV = flashfuzz_command_encoder(raw_fields)
++        else:
++            command = dataclass_from_dict(command_cls, payload, allow_sdk_types=True)
+         if node_id >= TEST_NODE_START:
+             LOGGER.debug(
+                 "send_device_command called for test node %s on endpoint_id: %s - "
+@@ -804,6 +815,7 @@ class MatterDeviceController:
+         node_id: int,
+         attribute_path: str,
+         value: Any,
++        value_type: str | None = None,
+     ) -> Any:
+         """Write an attribute(value) on a target node."""
+         if (node := self._nodes.get(node_id)) is None or not node.available:
+@@ -815,13 +827,18 @@ class MatterDeviceController:
+             Clusters.ClusterAttributeDescriptor,
+             ALL_ATTRIBUTES[cluster_id][attribute_id](),
+         )
+-        attribute.value = parse_value(
+-            name=attribute_path,
+-            value=value,
+-            value_type=attribute.attribute_type.Type,
+-            allow_none=False,
+-            allow_sdk_types=True,
+-        )
++        if value_type is not None:
++            # Use custom TLV encoder
++            attribute.value = value
++            attribute.ToTLV = flashfuzz_tlv_encoder(value, value_type)
++        else:
++            attribute.value = parse_value(
++                name=attribute_path,
++                value=value,
++                value_type=attribute.attribute_type.Type,
++                allow_none=False,
++                allow_sdk_types=True,
++            )
+         if node_id >= TEST_NODE_START:
+             LOGGER.debug(
+                 "write_attribute called for test node %s on path %s - value %s\n%s",

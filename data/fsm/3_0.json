@@ -1,0 +1,175 @@
+{
+  "cluster_id": 3,
+  "cluster_name": "Identify",
+  "feature_map": 0,
+  "state_variables": [
+    {
+      "name": "IdentifyTime",
+      "attribute_id": 0,
+      "type": "uint16"
+    },
+    {
+      "name": "IdentifyType",
+      "attribute_id": 1,
+      "type": "enum8"
+    }
+  ],
+  "states": [
+    {
+      "id": "not_identifying",
+      "description": "Device is not in identification state",
+      "conditions": [
+        {
+          "variable": "IdentifyTime",
+          "op": "eq",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": []
+    },
+    {
+      "id": "identifying",
+      "description": "Device is in identification state",
+      "conditions": [
+        {
+          "variable": "IdentifyTime",
+          "op": "gt",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": []
+    }
+  ],
+  "transitions": [
+    {
+      "id": "t0_Identify",
+      "from_state": "not_identifying",
+      "to_state": "identifying",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "Identify",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "IdentifyTime",
+          "type": "uint16",
+          "constraint": "1..65535",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t1_Identify",
+      "from_state": "not_identifying",
+      "to_state": "not_identifying",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "Identify",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "IdentifyTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t2_Identify",
+      "from_state": "identifying",
+      "to_state": "identifying",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "Identify",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "IdentifyTime",
+          "type": "uint16",
+          "constraint": "1..65535",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t3_Identify",
+      "from_state": "identifying",
+      "to_state": "not_identifying",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "Identify",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "IdentifyTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t4_TriggerEffect",
+      "from_state": "not_identifying",
+      "to_state": "not_identifying",
+      "trigger_type": "command",
+      "command_id": 64,
+      "command_name": "TriggerEffect",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "EffectIdentifier",
+          "type": "enum8",
+          "constraint": "0,1,2,11,254,255",
+          "invalid_values": []
+        },
+        {
+          "name": "EffectVariant",
+          "type": "enum8",
+          "constraint": "0",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t5_TriggerEffect",
+      "from_state": "identifying",
+      "to_state": "identifying",
+      "trigger_type": "command",
+      "command_id": 64,
+      "command_name": "TriggerEffect",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "EffectIdentifier",
+          "type": "enum8",
+          "constraint": "0,1,2,11,254,255",
+          "invalid_values": []
+        },
+        {
+          "name": "EffectVariant",
+          "type": "enum8",
+          "constraint": "0",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    }
+  ],
+  "models": [
+    "gemini-4-hydrogen"
+  ],
+  "spec": "matter1.4-cluster.pdf"
+}

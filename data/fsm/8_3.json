@@ -1,0 +1,2797 @@
+{
+  "cluster_id": 8,
+  "cluster_name": "LevelControl",
+  "feature_map": 3,
+  "state_variables": [
+    {
+      "name": "CurrentLevel",
+      "attribute_id": 0,
+      "type": "uint8"
+    },
+    {
+      "name": "RemainingTime",
+      "attribute_id": 1,
+      "type": "uint16"
+    },
+    {
+      "name": "MinLevel",
+      "attribute_id": 2,
+      "type": "uint8"
+    },
+    {
+      "name": "MaxLevel",
+      "attribute_id": 3,
+      "type": "uint8"
+    },
+    {
+      "name": "Options",
+      "attribute_id": 15,
+      "type": "OptionsBitmap"
+    },
+    {
+      "name": "OnLevel",
+      "attribute_id": 17,
+      "type": "uint8"
+    },
+    {
+      "name": "DefaultMoveRate",
+      "attribute_id": 20,
+      "type": "uint8"
+    },
+    {
+      "name": "StartUpCurrentLevel",
+      "attribute_id": 16384,
+      "type": "uint8"
+    }
+  ],
+  "states": [
+    {
+      "id": "level_null",
+      "description": "CurrentLevel is undefined (null) and no transition is active",
+      "conditions": [
+        {
+          "variable": "CurrentLevel",
+          "op": "eq",
+          "value": "null"
+        },
+        {
+          "variable": "RemainingTime",
+          "op": "eq",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": [
+        "Move(Rate=0) -> INVALID_COMMAND",
+        "MoveWithOnOff(Rate=0) -> INVALID_COMMAND",
+        "Step(StepSize=0) -> INVALID_COMMAND",
+        "StepWithOnOff(StepSize=0) -> INVALID_COMMAND",
+        "MoveToLevel(Level=255)"
+      ]
+    },
+    {
+      "id": "at_min_level",
+      "description": "CurrentLevel is at MinLevel and idle",
+      "conditions": [
+        {
+          "variable": "CurrentLevel",
+          "op": "eq",
+          "value": "MinLevel"
+        },
+        {
+          "variable": "RemainingTime",
+          "op": "eq",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": [
+        "Move(Rate=0) -> INVALID_COMMAND",
+        "MoveWithOnOff(Rate=0) -> INVALID_COMMAND",
+        "Step(StepSize=0) -> INVALID_COMMAND",
+        "StepWithOnOff(StepSize=0) -> INVALID_COMMAND",
+        "MoveToLevel(Level=255)"
+      ]
+    },
+    {
+      "id": "between_min_and_max",
+      "description": "CurrentLevel is between MinLevel and MaxLevel and idle",
+      "conditions": [
+        {
+          "variable": "CurrentLevel",
+          "op": "gt",
+          "value": "MinLevel"
+        },
+        {
+          "variable": "CurrentLevel",
+          "op": "lt",
+          "value": "MaxLevel"
+        },
+        {
+          "variable": "RemainingTime",
+          "op": "eq",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": [
+        "Move(Rate=0) -> INVALID_COMMAND",
+        "MoveWithOnOff(Rate=0) -> INVALID_COMMAND",
+        "Step(StepSize=0) -> INVALID_COMMAND",
+        "StepWithOnOff(StepSize=0) -> INVALID_COMMAND",
+        "MoveToLevel(Level=255)"
+      ]
+    },
+    {
+      "id": "at_max_level",
+      "description": "CurrentLevel is at MaxLevel and idle",
+      "conditions": [
+        {
+          "variable": "CurrentLevel",
+          "op": "eq",
+          "value": "MaxLevel"
+        },
+        {
+          "variable": "RemainingTime",
+          "op": "eq",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": [
+        "Move(Rate=0) -> INVALID_COMMAND",
+        "MoveWithOnOff(Rate=0) -> INVALID_COMMAND",
+        "Step(StepSize=0) -> INVALID_COMMAND",
+        "StepWithOnOff(StepSize=0) -> INVALID_COMMAND",
+        "MoveToLevel(Level=255)"
+      ]
+    },
+    {
+      "id": "transitioning",
+      "description": "Level movement or transition is in progress",
+      "conditions": [
+        {
+          "variable": "CurrentLevel",
+          "op": "ge",
+          "value": "MinLevel"
+        },
+        {
+          "variable": "CurrentLevel",
+          "op": "le",
+          "value": "MaxLevel"
+        },
+        {
+          "variable": "RemainingTime",
+          "op": "gt",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": [
+        "Move(Rate=0) -> INVALID_COMMAND",
+        "MoveWithOnOff(Rate=0) -> INVALID_COMMAND",
+        "Step(StepSize=0) -> INVALID_COMMAND",
+        "StepWithOnOff(StepSize=0) -> INVALID_COMMAND",
+        "MoveToLevel(Level=255)"
+      ]
+    }
+  ],
+  "transitions": [
+    {
+      "id": "t0_MoveToLevel",
+      "from_state": "level_null",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToLevel",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff_cluster_absent OR OnOff == TRUE OR temp_Options.ExecuteIfOff == 1) AND (TransitionTime > 0 OR (TransitionTime == null AND OnOffTransitionTime > 0))",
+      "expected_error": null
+    },
+    {
+      "id": "t1_MoveToLevel",
+      "from_state": "level_null",
+      "to_state": "at_min_level",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToLevel",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "0..MinLevel",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff_cluster_absent OR OnOff == TRUE OR temp_Options.ExecuteIfOff == 1) AND (TransitionTime == 0 OR (TransitionTime == null AND (OnOffTransitionTime_absent OR OnOffTransitionTime == 0))) AND Level <= MinLevel",
+      "expected_error": null
+    },
+    {
+      "id": "t2_MoveToLevel",
+      "from_state": "level_null",
+      "to_state": "between_min_and_max",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToLevel",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "(MinLevel+1)..(MaxLevel-1); 0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff_cluster_absent OR OnOff == TRUE OR temp_Options.ExecuteIfOff == 1) AND (TransitionTime == 0 OR (TransitionTime == null AND (OnOffTransitionTime_absent OR OnOffTransitionTime == 0))) AND Level > MinLevel AND Level < MaxLevel",
+      "expected_error": null
+    },
+    {
+      "id": "t3_MoveToLevel",
+      "from_state": "level_null",
+      "to_state": "at_max_level",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToLevel",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "MaxLevel..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff_cluster_absent OR OnOff == TRUE OR temp_Options.ExecuteIfOff == 1) AND (TransitionTime == 0 OR (TransitionTime == null AND (OnOffTransitionTime_absent OR OnOffTransitionTime == 0))) AND Level >= MaxLevel",
+      "expected_error": null
+    },
+    {
+      "id": "t4_MoveToLevel",
+      "from_state": "level_null",
+      "to_state": "level_null",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToLevel",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "OnOff_cluster_present AND OnOff == FALSE AND temp_Options.ExecuteIfOff == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t5_MoveToLevel",
+      "from_state": "at_min_level",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToLevel",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff_cluster_absent OR OnOff == TRUE OR temp_Options.ExecuteIfOff == 1) AND Level > MinLevel AND (TransitionTime > 0 OR (TransitionTime == null AND OnOffTransitionTime > 0))",
+      "expected_error": null
+    },
+    {
+      "id": "t6_MoveToLevel",
+      "from_state": "at_min_level",
+      "to_state": "at_min_level",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToLevel",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "0..MinLevel",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff_cluster_present AND OnOff == FALSE AND temp_Options.ExecuteIfOff == 0) OR Level <= MinLevel",
+      "expected_error": null
+    },
+    {
+      "id": "t7_MoveToLevel",
+      "from_state": "at_min_level",
+      "to_state": "between_min_and_max",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToLevel",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "(MinLevel+1)..(MaxLevel-1); 0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff_cluster_absent OR OnOff == TRUE OR temp_Options.ExecuteIfOff == 1) AND (TransitionTime == 0 OR (TransitionTime == null AND (OnOffTransitionTime_absent OR OnOffTransitionTime == 0))) AND Level > MinLevel AND Level < MaxLevel",
+      "expected_error": null
+    },
+    {
+      "id": "t8_MoveToLevel",
+      "from_state": "at_min_level",
+      "to_state": "at_max_level",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToLevel",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "MaxLevel..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff_cluster_absent OR OnOff == TRUE OR temp_Options.ExecuteIfOff == 1) AND (TransitionTime == 0 OR (TransitionTime == null AND (OnOffTransitionTime_absent OR OnOffTransitionTime == 0))) AND Level >= MaxLevel",
+      "expected_error": null
+    },
+    {
+      "id": "t9_MoveToLevel",
+      "from_state": "between_min_and_max",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToLevel",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff_cluster_absent OR OnOff == TRUE OR temp_Options.ExecuteIfOff == 1) AND Level != CurrentLevel AND (TransitionTime > 0 OR (TransitionTime == null AND OnOffTransitionTime > 0))",
+      "expected_error": null
+    },
+    {
+      "id": "t10_MoveToLevel",
+      "from_state": "between_min_and_max",
+      "to_state": "at_min_level",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToLevel",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "0..MinLevel",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff_cluster_absent OR OnOff == TRUE OR temp_Options.ExecuteIfOff == 1) AND (TransitionTime == 0 OR (TransitionTime == null AND (OnOffTransitionTime_absent OR OnOffTransitionTime == 0))) AND Level <= MinLevel",
+      "expected_error": null
+    },
+    {
+      "id": "t11_MoveToLevel",
+      "from_state": "between_min_and_max",
+      "to_state": "between_min_and_max",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToLevel",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "(MinLevel+1)..(MaxLevel-1); 0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff_cluster_present AND OnOff == FALSE AND temp_Options.ExecuteIfOff == 0) OR ((TransitionTime == 0 OR (TransitionTime == null AND (OnOffTransitionTime_absent OR OnOffTransitionTime == 0))) AND Level > MinLevel AND Level < MaxLevel) OR Level == CurrentLevel",
+      "expected_error": null
+    },
+    {
+      "id": "t12_MoveToLevel",
+      "from_state": "between_min_and_max",
+      "to_state": "at_max_level",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToLevel",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "MaxLevel..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff_cluster_absent OR OnOff == TRUE OR temp_Options.ExecuteIfOff == 1) AND (TransitionTime == 0 OR (TransitionTime == null AND (OnOffTransitionTime_absent OR OnOffTransitionTime == 0))) AND Level >= MaxLevel",
+      "expected_error": null
+    },
+    {
+      "id": "t13_MoveToLevel",
+      "from_state": "at_max_level",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToLevel",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff_cluster_absent OR OnOff == TRUE OR temp_Options.ExecuteIfOff == 1) AND Level < MaxLevel AND (TransitionTime > 0 OR (TransitionTime == null AND OnOffTransitionTime > 0))",
+      "expected_error": null
+    },
+    {
+      "id": "t14_MoveToLevel",
+      "from_state": "at_max_level",
+      "to_state": "at_min_level",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToLevel",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "0..MinLevel",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff_cluster_absent OR OnOff == TRUE OR temp_Options.ExecuteIfOff == 1) AND (TransitionTime == 0 OR (TransitionTime == null AND (OnOffTransitionTime_absent OR OnOffTransitionTime == 0))) AND Level <= MinLevel",
+      "expected_error": null
+    },
+    {
+      "id": "t15_MoveToLevel",
+      "from_state": "at_max_level",
+      "to_state": "between_min_and_max",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToLevel",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "(MinLevel+1)..(MaxLevel-1); 0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff_cluster_absent OR OnOff == TRUE OR temp_Options.ExecuteIfOff == 1) AND (TransitionTime == 0 OR (TransitionTime == null AND (OnOffTransitionTime_absent OR OnOffTransitionTime == 0))) AND Level > MinLevel AND Level < MaxLevel",
+      "expected_error": null
+    },
+    {
+      "id": "t16_MoveToLevel",
+      "from_state": "at_max_level",
+      "to_state": "at_max_level",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToLevel",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "MaxLevel..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff_cluster_present AND OnOff == FALSE AND temp_Options.ExecuteIfOff == 0) OR Level >= MaxLevel",
+      "expected_error": null
+    },
+    {
+      "id": "t17_MoveToLevel",
+      "from_state": "transitioning",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToLevel",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff_cluster_present AND OnOff == FALSE AND temp_Options.ExecuteIfOff == 0) OR (TransitionTime > 0 OR (TransitionTime == null AND OnOffTransitionTime > 0))",
+      "expected_error": null
+    },
+    {
+      "id": "t18_MoveToLevel",
+      "from_state": "transitioning",
+      "to_state": "at_min_level",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToLevel",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "0..MinLevel",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff_cluster_absent OR OnOff == TRUE OR temp_Options.ExecuteIfOff == 1) AND (TransitionTime == 0 OR (TransitionTime == null AND (OnOffTransitionTime_absent OR OnOffTransitionTime == 0))) AND Level <= MinLevel",
+      "expected_error": null
+    },
+    {
+      "id": "t19_MoveToLevel",
+      "from_state": "transitioning",
+      "to_state": "between_min_and_max",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToLevel",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "(MinLevel+1)..(MaxLevel-1); 0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff_cluster_absent OR OnOff == TRUE OR temp_Options.ExecuteIfOff == 1) AND (TransitionTime == 0 OR (TransitionTime == null AND (OnOffTransitionTime_absent OR OnOffTransitionTime == 0))) AND Level > MinLevel AND Level < MaxLevel",
+      "expected_error": null
+    },
+    {
+      "id": "t20_MoveToLevel",
+      "from_state": "transitioning",
+      "to_state": "at_max_level",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToLevel",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "MaxLevel..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff_cluster_absent OR OnOff == TRUE OR temp_Options.ExecuteIfOff == 1) AND (TransitionTime == 0 OR (TransitionTime == null AND (OnOffTransitionTime_absent OR OnOffTransitionTime == 0))) AND Level >= MaxLevel",
+      "expected_error": null
+    },
+    {
+      "id": "t21_Move",
+      "from_state": "at_min_level",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "Move",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "0",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..254,null",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "OnOff eq TRUE or ExecuteIfOff eq 1",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t22_Move",
+      "from_state": "between_min_and_max",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "Move",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..254,null",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "OnOff eq TRUE or ExecuteIfOff eq 1",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t23_Move",
+      "from_state": "at_max_level",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "Move",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..254,null",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "OnOff eq TRUE or ExecuteIfOff eq 1",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t24_Move",
+      "from_state": "transitioning",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "Move",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..254,null",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "OnOff eq TRUE or ExecuteIfOff eq 1",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t25_Step",
+      "from_state": "at_min_level",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Step",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepMode == 0 && (OnOff == TRUE || temporary_Options.ExecuteIfOff == 1) && (TransitionTime >= 1 && TransitionTime <= 65534) && (MinLevel + StepSize > MinLevel && (MinLevel + StepSize < MaxLevel || MinLevel + StepSize >= MaxLevel))",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t26_Step",
+      "from_state": "at_min_level",
+      "to_state": "between_min_and_max",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Step",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepMode == 0 && (OnOff == TRUE || temporary_Options.ExecuteIfOff == 1) && (TransitionTime == 0 || TransitionTime == null) && MinLevel + StepSize < MaxLevel",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t27_Step",
+      "from_state": "at_min_level",
+      "to_state": "at_max_level",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Step",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepMode == 0 && (OnOff == TRUE || temporary_Options.ExecuteIfOff == 1) && (TransitionTime == 0 || TransitionTime == null) && MinLevel + StepSize >= MaxLevel",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t28_Step",
+      "from_state": "at_min_level",
+      "to_state": "at_min_level",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Step",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepMode == 1 || (OnOff == FALSE && temporary_Options.ExecuteIfOff == 0) || StepSize == 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t29_Step",
+      "from_state": "between_min_and_max",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Step",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff == TRUE || temporary_Options.ExecuteIfOff == 1) && (TransitionTime >= 1 && TransitionTime <= 65534) && StepSize >= 1",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t30_Step",
+      "from_state": "between_min_and_max",
+      "to_state": "between_min_and_max",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Step",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "((TransitionTime == 0 || TransitionTime == null) && ((StepMode == 0 && CurrentLevel + StepSize < MaxLevel) || (StepMode == 1 && CurrentLevel - StepSize > MinLevel)) && (OnOff == TRUE || temporary_Options.ExecuteIfOff == 1)) || (OnOff == FALSE && temporary_Options.ExecuteIfOff == 0) || StepSize == 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t31_Step",
+      "from_state": "between_min_and_max",
+      "to_state": "at_max_level",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Step",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepMode == 0 && (OnOff == TRUE || temporary_Options.ExecuteIfOff == 1) && (TransitionTime == 0 || TransitionTime == null) && CurrentLevel + StepSize >= MaxLevel",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t32_Step",
+      "from_state": "between_min_and_max",
+      "to_state": "at_min_level",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Step",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepMode == 1 && (OnOff == TRUE || temporary_Options.ExecuteIfOff == 1) && (TransitionTime == 0 || TransitionTime == null) && CurrentLevel - StepSize <= MinLevel",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t33_Step",
+      "from_state": "at_max_level",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Step",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepMode == 1 && (OnOff == TRUE || temporary_Options.ExecuteIfOff == 1) && (TransitionTime >= 1 && TransitionTime <= 65534) && StepSize >= 1",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t34_Step",
+      "from_state": "at_max_level",
+      "to_state": "between_min_and_max",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Step",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepMode == 1 && (OnOff == TRUE || temporary_Options.ExecuteIfOff == 1) && (TransitionTime == 0 || TransitionTime == null) && MaxLevel - StepSize > MinLevel",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t35_Step",
+      "from_state": "at_max_level",
+      "to_state": "at_min_level",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Step",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepMode == 1 && (OnOff == TRUE || temporary_Options.ExecuteIfOff == 1) && (TransitionTime == 0 || TransitionTime == null) && MaxLevel - StepSize <= MinLevel",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t36_Step",
+      "from_state": "at_max_level",
+      "to_state": "at_max_level",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Step",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepMode == 0 || (OnOff == FALSE && temporary_Options.ExecuteIfOff == 0) || StepSize == 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t37_Step",
+      "from_state": "transitioning",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Step",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "((OnOff == TRUE || temporary_Options.ExecuteIfOff == 1) && (TransitionTime >= 1 && TransitionTime <= 65534) && StepSize >= 1) || (OnOff == FALSE && temporary_Options.ExecuteIfOff == 0) || StepSize == 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t38_Step",
+      "from_state": "transitioning",
+      "to_state": "between_min_and_max",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Step",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(OnOff == TRUE || temporary_Options.ExecuteIfOff == 1) && (TransitionTime == 0 || TransitionTime == null) && ((StepMode == 0 && CurrentLevel + StepSize < MaxLevel) || (StepMode == 1 && CurrentLevel - StepSize > MinLevel))",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t39_Step",
+      "from_state": "transitioning",
+      "to_state": "at_max_level",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Step",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepMode == 0 && (OnOff == TRUE || temporary_Options.ExecuteIfOff == 1) && (TransitionTime == 0 || TransitionTime == null) && CurrentLevel + StepSize >= MaxLevel",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t40_Step",
+      "from_state": "transitioning",
+      "to_state": "at_min_level",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Step",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepMode == 1 && (OnOff == TRUE || temporary_Options.ExecuteIfOff == 1) && (TransitionTime == 0 || TransitionTime == null) && CurrentLevel - StepSize <= MinLevel",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t41_Stop",
+      "from_state": "transitioning",
+      "to_state": "between_min_and_max",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "Stop",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "CurrentLevel > MinLevel and CurrentLevel < MaxLevel and (OnOff == TRUE or temporary Options.ExecuteIfOff == 1 or On/Off cluster not on same endpoint)",
+      "expected_error": null
+    },
+    {
+      "id": "t42_Stop",
+      "from_state": "transitioning",
+      "to_state": "at_min_level",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "Stop",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "CurrentLevel == MinLevel and (OnOff == TRUE or temporary Options.ExecuteIfOff == 1 or On/Off cluster not on same endpoint)",
+      "expected_error": null
+    },
+    {
+      "id": "t43_Stop",
+      "from_state": "transitioning",
+      "to_state": "at_max_level",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "Stop",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "CurrentLevel == MaxLevel and (OnOff == TRUE or temporary Options.ExecuteIfOff == 1 or On/Off cluster not on same endpoint)",
+      "expected_error": null
+    },
+    {
+      "id": "t44_Stop",
+      "from_state": "transitioning",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "Stop",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "On/Off cluster on same endpoint and OnOff == FALSE and temporary Options.ExecuteIfOff == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t45_Stop",
+      "from_state": "at_min_level",
+      "to_state": "at_min_level",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "Stop",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t46_Stop",
+      "from_state": "between_min_and_max",
+      "to_state": "between_min_and_max",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "Stop",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t47_Stop",
+      "from_state": "at_max_level",
+      "to_state": "at_max_level",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "Stop",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t48_Stop",
+      "from_state": "level_null",
+      "to_state": "level_null",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "Stop",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t49_MoveToLevelWithOnOff",
+      "from_state": "level_null",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "MoveToLevelWithOnOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t50_MoveToLevelWithOnOff",
+      "from_state": "at_min_level",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "MoveToLevelWithOnOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t51_MoveToLevelWithOnOff",
+      "from_state": "between_min_and_max",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "MoveToLevelWithOnOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t52_MoveToLevelWithOnOff",
+      "from_state": "at_max_level",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "MoveToLevelWithOnOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t53_MoveToLevelWithOnOff",
+      "from_state": "transitioning",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "MoveToLevelWithOnOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Level",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t54_MoveWithOnOff",
+      "from_state": "at_min_level",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "MoveWithOnOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..254, null",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode == 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t55_MoveWithOnOff",
+      "from_state": "between_min_and_max",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "MoveWithOnOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..254, null",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t56_MoveWithOnOff",
+      "from_state": "at_max_level",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "MoveWithOnOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..254, null",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode == 1",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t57_MoveWithOnOff",
+      "from_state": "transitioning",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "MoveWithOnOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..254, null",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t58_StepWithOnOff",
+      "from_state": "at_min_level",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 6,
+      "command_name": "StepWithOnOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepMode == 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t59_StepWithOnOff",
+      "from_state": "between_min_and_max",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 6,
+      "command_name": "StepWithOnOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t60_StepWithOnOff",
+      "from_state": "at_max_level",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 6,
+      "command_name": "StepWithOnOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepMode == 1",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t61_StepWithOnOff",
+      "from_state": "transitioning",
+      "to_state": "transitioning",
+      "trigger_type": "command",
+      "command_id": 6,
+      "command_name": "StepWithOnOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534,null",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t62_StopWithOnOff",
+      "from_state": "transitioning",
+      "to_state": "at_min_level",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "StopWithOnOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "CurrentLevel eq MinLevel",
+      "expected_error": null
+    },
+    {
+      "id": "t63_StopWithOnOff",
+      "from_state": "transitioning",
+      "to_state": "between_min_and_max",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "StopWithOnOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "CurrentLevel gt MinLevel and CurrentLevel lt MaxLevel",
+      "expected_error": null
+    },
+    {
+      "id": "t64_StopWithOnOff",
+      "from_state": "transitioning",
+      "to_state": "at_max_level",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "StopWithOnOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": "CurrentLevel eq MaxLevel",
+      "expected_error": null
+    },
+    {
+      "id": "t65_StopWithOnOff",
+      "from_state": "at_min_level",
+      "to_state": "at_min_level",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "StopWithOnOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t66_StopWithOnOff",
+      "from_state": "between_min_and_max",
+      "to_state": "between_min_and_max",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "StopWithOnOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t67_StopWithOnOff",
+      "from_state": "at_max_level",
+      "to_state": "at_max_level",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "StopWithOnOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t68_StopWithOnOff",
+      "from_state": "level_null",
+      "to_state": "level_null",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "StopWithOnOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0..3",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    }
+  ],
+  "models": [
+    "gemini-4-hydrogen"
+  ],
+  "spec": "matter1.4-cluster.pdf"
+}

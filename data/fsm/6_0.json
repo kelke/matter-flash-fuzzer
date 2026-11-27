@@ -1,0 +1,104 @@
+{
+  "cluster_id": 6,
+  "cluster_name": "OnOff",
+  "feature_map": 0,
+  "state_variables": [
+    {
+      "name": "OnOff",
+      "attribute_id": 0,
+      "type": "bool"
+    }
+  ],
+  "states": [
+    {
+      "id": "off",
+      "description": "Device is Off",
+      "conditions": [
+        {
+          "variable": "OnOff",
+          "op": "eq",
+          "value": "false"
+        }
+      ],
+      "unaccepted_values": []
+    },
+    {
+      "id": "on",
+      "description": "Device is On",
+      "conditions": [
+        {
+          "variable": "OnOff",
+          "op": "eq",
+          "value": "true"
+        }
+      ],
+      "unaccepted_values": []
+    }
+  ],
+  "transitions": [
+    {
+      "id": "t0_Off",
+      "from_state": "on",
+      "to_state": "off",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "Off",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t1_Off",
+      "from_state": "off",
+      "to_state": "off",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "Off",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t2_On",
+      "from_state": "off",
+      "to_state": "on",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "On",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t3_Toggle",
+      "from_state": "off",
+      "to_state": "on",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Toggle",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t4_Toggle",
+      "from_state": "on",
+      "to_state": "off",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Toggle",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": null,
+      "expected_error": null
+    }
+  ],
+  "models": [
+    "gemini-4-hydrogen"
+  ],
+  "spec": "matter1.4-cluster.pdf"
+}

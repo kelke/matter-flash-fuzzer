@@ -1,0 +1,786 @@
+{
+  "cluster_id": 6,
+  "cluster_name": "OnOff",
+  "feature_map": 1,
+  "state_variables": [
+    {
+      "name": "OnOff",
+      "attribute_id": 0,
+      "type": "bool"
+    },
+    {
+      "name": "GlobalSceneControl",
+      "attribute_id": 16384,
+      "type": "bool"
+    },
+    {
+      "name": "OnTime",
+      "attribute_id": 16385,
+      "type": "uint16"
+    },
+    {
+      "name": "OffWaitTime",
+      "attribute_id": 16386,
+      "type": "uint16"
+    },
+    {
+      "name": "StartUpOnOff",
+      "attribute_id": 16387,
+      "type": "enum8"
+    }
+  ],
+  "states": [
+    {
+      "id": "off",
+      "description": "Device is Off",
+      "conditions": [
+        {
+          "variable": "OnOff",
+          "op": "eq",
+          "value": "false"
+        },
+        {
+          "variable": "OnTime",
+          "op": "eq",
+          "value": "0"
+        },
+        {
+          "variable": "OffWaitTime",
+          "op": "eq",
+          "value": "0"
+        },
+        {
+          "variable": "GlobalSceneControl",
+          "op": "any",
+          "value": "*"
+        }
+      ],
+      "unaccepted_values": [
+        "OnWithTimedOff(OnOffControl=1)"
+      ]
+    },
+    {
+      "id": "on",
+      "description": "Device is On",
+      "conditions": [
+        {
+          "variable": "OnOff",
+          "op": "eq",
+          "value": "true"
+        },
+        {
+          "variable": "OnTime",
+          "op": "eq",
+          "value": "0"
+        },
+        {
+          "variable": "OffWaitTime",
+          "op": "eq",
+          "value": "0"
+        },
+        {
+          "variable": "GlobalSceneControl",
+          "op": "eq",
+          "value": "true"
+        }
+      ],
+      "unaccepted_values": [
+        "OnWithRecallGlobalScene"
+      ]
+    },
+    {
+      "id": "timed_on",
+      "description": "Device is in Timed On state",
+      "conditions": [
+        {
+          "variable": "OnOff",
+          "op": "eq",
+          "value": "true"
+        },
+        {
+          "variable": "OnTime",
+          "op": "gt",
+          "value": "0"
+        },
+        {
+          "variable": "GlobalSceneControl",
+          "op": "eq",
+          "value": "true"
+        }
+      ],
+      "unaccepted_values": [
+        "OnWithRecallGlobalScene"
+      ]
+    },
+    {
+      "id": "delayed_off",
+      "description": "Device is in Delayed Off state",
+      "conditions": [
+        {
+          "variable": "OnOff",
+          "op": "eq",
+          "value": "false"
+        },
+        {
+          "variable": "OffWaitTime",
+          "op": "gt",
+          "value": "0"
+        },
+        {
+          "variable": "GlobalSceneControl",
+          "op": "any",
+          "value": "*"
+        }
+      ],
+      "unaccepted_values": [
+        "OnWithTimedOff(OnOffControl=1)"
+      ]
+    }
+  ],
+  "transitions": [
+    {
+      "id": "t0_Off",
+      "from_state": "on",
+      "to_state": "off",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "Off",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t1_Off",
+      "from_state": "off",
+      "to_state": "off",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "Off",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t2_Off",
+      "from_state": "timed_on",
+      "to_state": "delayed_off",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "Off",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": "OffWaitTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t3_Off",
+      "from_state": "timed_on",
+      "to_state": "off",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "Off",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": "OffWaitTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t4_Off",
+      "from_state": "delayed_off",
+      "to_state": "delayed_off",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "Off",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t5_On",
+      "from_state": "off",
+      "to_state": "on",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "On",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t6_On",
+      "from_state": "on",
+      "to_state": "on",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "On",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t7_On",
+      "from_state": "timed_on",
+      "to_state": "timed_on",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "On",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t8_On",
+      "from_state": "delayed_off",
+      "to_state": "on",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "On",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t9_Toggle",
+      "from_state": "off",
+      "to_state": "on",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Toggle",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t10_Toggle",
+      "from_state": "on",
+      "to_state": "off",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Toggle",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t11_Toggle",
+      "from_state": "timed_on",
+      "to_state": "delayed_off",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Toggle",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t12_Toggle",
+      "from_state": "delayed_off",
+      "to_state": "on",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "Toggle",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t13_OffWithEffect",
+      "from_state": "on",
+      "to_state": "off",
+      "trigger_type": "command",
+      "command_id": 64,
+      "command_name": "OffWithEffect",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "EffectIdentifier",
+          "type": "enum8",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "EffectVariant",
+          "type": "enum8",
+          "constraint": "0,1,2",
+          "invalid_values": [
+            "3..255"
+          ]
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t14_OffWithEffect",
+      "from_state": "off",
+      "to_state": "off",
+      "trigger_type": "command",
+      "command_id": 64,
+      "command_name": "OffWithEffect",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "EffectIdentifier",
+          "type": "enum8",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "EffectVariant",
+          "type": "enum8",
+          "constraint": "0,1,2",
+          "invalid_values": [
+            "3..255"
+          ]
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t15_OffWithEffect",
+      "from_state": "timed_on",
+      "to_state": "delayed_off",
+      "trigger_type": "command",
+      "command_id": 64,
+      "command_name": "OffWithEffect",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "EffectIdentifier",
+          "type": "enum8",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "EffectVariant",
+          "type": "enum8",
+          "constraint": "0,1,2",
+          "invalid_values": [
+            "3..255"
+          ]
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t16_OffWithEffect",
+      "from_state": "delayed_off",
+      "to_state": "delayed_off",
+      "trigger_type": "command",
+      "command_id": 64,
+      "command_name": "OffWithEffect",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "EffectIdentifier",
+          "type": "enum8",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "EffectVariant",
+          "type": "enum8",
+          "constraint": "0,1,2",
+          "invalid_values": [
+            "3..255"
+          ]
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t17_OnWithRecallGlobalScene",
+      "from_state": "off",
+      "to_state": "on",
+      "trigger_type": "command",
+      "command_id": 65,
+      "command_name": "OnWithRecallGlobalScene",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": "GlobalSceneControl == false",
+      "expected_error": null
+    },
+    {
+      "id": "t18_OnWithRecallGlobalScene",
+      "from_state": "off",
+      "to_state": "off",
+      "trigger_type": "command",
+      "command_id": 65,
+      "command_name": "OnWithRecallGlobalScene",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": "GlobalSceneControl == true",
+      "expected_error": null
+    },
+    {
+      "id": "t19_OnWithRecallGlobalScene",
+      "from_state": "delayed_off",
+      "to_state": "on",
+      "trigger_type": "command",
+      "command_id": 65,
+      "command_name": "OnWithRecallGlobalScene",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": "GlobalSceneControl == false",
+      "expected_error": null
+    },
+    {
+      "id": "t20_OnWithRecallGlobalScene",
+      "from_state": "delayed_off",
+      "to_state": "delayed_off",
+      "trigger_type": "command",
+      "command_id": 65,
+      "command_name": "OnWithRecallGlobalScene",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": "GlobalSceneControl == true",
+      "expected_error": null
+    },
+    {
+      "id": "t21_OnWithRecallGlobalScene",
+      "from_state": "on",
+      "to_state": "on",
+      "trigger_type": "command",
+      "command_id": 65,
+      "command_name": "OnWithRecallGlobalScene",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": "GlobalSceneControl == true",
+      "expected_error": null
+    },
+    {
+      "id": "t22_OnWithRecallGlobalScene",
+      "from_state": "timed_on",
+      "to_state": "timed_on",
+      "trigger_type": "command",
+      "command_id": 65,
+      "command_name": "OnWithRecallGlobalScene",
+      "attribute_id": null,
+      "parameters": [],
+      "guard": "GlobalSceneControl == true",
+      "expected_error": null
+    },
+    {
+      "id": "t23_OnWithTimedOff",
+      "from_state": "off",
+      "to_state": "timed_on",
+      "trigger_type": "command",
+      "command_id": 66,
+      "command_name": "OnWithTimedOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OnOffControl",
+          "type": "map8",
+          "constraint": "0",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "OnTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OffWaitTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        }
+      ],
+      "guard": "OnOffControl == 0 && OnTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t24_OnWithTimedOff",
+      "from_state": "off",
+      "to_state": "off",
+      "trigger_type": "command",
+      "command_id": 66,
+      "command_name": "OnWithTimedOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OnOffControl",
+          "type": "map8",
+          "constraint": "1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "OnTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OffWaitTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        }
+      ],
+      "guard": "OnOffControl == 1",
+      "expected_error": null
+    },
+    {
+      "id": "t25_OnWithTimedOff",
+      "from_state": "off",
+      "to_state": "on",
+      "trigger_type": "command",
+      "command_id": 66,
+      "command_name": "OnWithTimedOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OnOffControl",
+          "type": "map8",
+          "constraint": "0",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "OnTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OffWaitTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        }
+      ],
+      "guard": "OnOffControl == 0 && OnTime == 0 && OffWaitTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t26_OnWithTimedOff",
+      "from_state": "on",
+      "to_state": "timed_on",
+      "trigger_type": "command",
+      "command_id": 66,
+      "command_name": "OnWithTimedOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OnOffControl",
+          "type": "map8",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "OnTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OffWaitTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        }
+      ],
+      "guard": "OnTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t27_OnWithTimedOff",
+      "from_state": "on",
+      "to_state": "on",
+      "trigger_type": "command",
+      "command_id": 66,
+      "command_name": "OnWithTimedOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OnOffControl",
+          "type": "map8",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "OnTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OffWaitTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        }
+      ],
+      "guard": "OnTime == 0 && OffWaitTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t28_OnWithTimedOff",
+      "from_state": "timed_on",
+      "to_state": "timed_on",
+      "trigger_type": "command",
+      "command_id": 66,
+      "command_name": "OnWithTimedOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OnOffControl",
+          "type": "map8",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "OnTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OffWaitTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t29_OnWithTimedOff",
+      "from_state": "delayed_off",
+      "to_state": "delayed_off",
+      "trigger_type": "command",
+      "command_id": 66,
+      "command_name": "OnWithTimedOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OnOffControl",
+          "type": "map8",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "OnTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OffWaitTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        }
+      ],
+      "guard": "OnOffControl == 1 || OffWaitTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t30_OnWithTimedOff",
+      "from_state": "delayed_off",
+      "to_state": "off",
+      "trigger_type": "command",
+      "command_id": 66,
+      "command_name": "OnWithTimedOff",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OnOffControl",
+          "type": "map8",
+          "constraint": "0",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "OnTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OffWaitTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        }
+      ],
+      "guard": "OnOffControl == 0 && OffWaitTime == 0",
+      "expected_error": null
+    }
+  ],
+  "models": [
+    "gemini-4-hydrogen"
+  ],
+  "spec": "matter1.4-cluster.pdf"
+}

@@ -1,0 +1,7773 @@
+{
+  "cluster_id": 768,
+  "cluster_name": "ColorControl",
+  "feature_map": 25,
+  "state_variables": [
+    {
+      "name": "CurrentHue",
+      "attribute_id": 0,
+      "type": "uint8"
+    },
+    {
+      "name": "CurrentSaturation",
+      "attribute_id": 1,
+      "type": "uint8"
+    },
+    {
+      "name": "RemainingTime",
+      "attribute_id": 2,
+      "type": "uint16"
+    },
+    {
+      "name": "CurrentX",
+      "attribute_id": 3,
+      "type": "uint16"
+    },
+    {
+      "name": "CurrentY",
+      "attribute_id": 4,
+      "type": "uint16"
+    },
+    {
+      "name": "ColorTemperatureMireds",
+      "attribute_id": 7,
+      "type": "uint16"
+    },
+    {
+      "name": "ColorMode",
+      "attribute_id": 8,
+      "type": "ColorModeEnum"
+    },
+    {
+      "name": "Options",
+      "attribute_id": 15,
+      "type": "OptionsBitmap"
+    },
+    {
+      "name": "EnhancedColorMode",
+      "attribute_id": 16385,
+      "type": "EnhancedColorModeEnum"
+    },
+    {
+      "name": "ColorTempPhysicalMinMireds",
+      "attribute_id": 16395,
+      "type": "uint16"
+    },
+    {
+      "name": "ColorTempPhysicalMaxMireds",
+      "attribute_id": 16396,
+      "type": "uint16"
+    },
+    {
+      "name": "CoupleColorTempToLevelMinMireds",
+      "attribute_id": 16397,
+      "type": "uint16"
+    },
+    {
+      "name": "StartUpColorTemperatureMireds",
+      "attribute_id": 16400,
+      "type": "uint16"
+    }
+  ],
+  "states": [
+    {
+      "id": "hs_idle",
+      "description": "ColorMode is Hue and Saturation and no transition is active",
+      "conditions": [
+        {
+          "variable": "ColorMode",
+          "op": "eq",
+          "value": "0"
+        },
+        {
+          "variable": "CurrentHue",
+          "op": "in",
+          "value": "[0,254]"
+        },
+        {
+          "variable": "CurrentSaturation",
+          "op": "in",
+          "value": "[0,254]"
+        },
+        {
+          "variable": "RemainingTime",
+          "op": "eq",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": [
+        "MoveHue(MoveMode!=0,Rate=0)"
+      ]
+    },
+    {
+      "id": "hs_transitioning",
+      "description": "ColorMode is Hue and Saturation and a transition is active",
+      "conditions": [
+        {
+          "variable": "ColorMode",
+          "op": "eq",
+          "value": "0"
+        },
+        {
+          "variable": "CurrentHue",
+          "op": "in",
+          "value": "[0,254]"
+        },
+        {
+          "variable": "CurrentSaturation",
+          "op": "in",
+          "value": "[0,254]"
+        },
+        {
+          "variable": "RemainingTime",
+          "op": "gt",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": [
+        "StepHue(StepSize=0)"
+      ]
+    },
+    {
+      "id": "xy_idle",
+      "description": "ColorMode is XY and no transition is active",
+      "conditions": [
+        {
+          "variable": "ColorMode",
+          "op": "eq",
+          "value": "1"
+        },
+        {
+          "variable": "CurrentX",
+          "op": "in",
+          "value": "[0,65279]"
+        },
+        {
+          "variable": "CurrentY",
+          "op": "in",
+          "value": "[0,65279]"
+        },
+        {
+          "variable": "RemainingTime",
+          "op": "eq",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": [
+        "StepColor(StepX=0,StepY=0)"
+      ]
+    },
+    {
+      "id": "xy_transitioning",
+      "description": "ColorMode is XY and a transition is active",
+      "conditions": [
+        {
+          "variable": "ColorMode",
+          "op": "eq",
+          "value": "1"
+        },
+        {
+          "variable": "CurrentX",
+          "op": "in",
+          "value": "[0,65279]"
+        },
+        {
+          "variable": "CurrentY",
+          "op": "in",
+          "value": "[0,65279]"
+        },
+        {
+          "variable": "RemainingTime",
+          "op": "gt",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": [
+        "MoveToColor(ColorX=65280)"
+      ]
+    },
+    {
+      "id": "ct_min",
+      "description": "ColorMode is ColorTemperatureMireds at physical minimum mireds",
+      "conditions": [
+        {
+          "variable": "ColorMode",
+          "op": "eq",
+          "value": "2"
+        },
+        {
+          "variable": "ColorTemperatureMireds",
+          "op": "eq",
+          "value": "ColorTempPhysicalMinMireds"
+        },
+        {
+          "variable": "RemainingTime",
+          "op": "eq",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": [
+        "MoveColorTemperature(MoveMode!=0,Rate=0)"
+      ]
+    },
+    {
+      "id": "ct_mid",
+      "description": "ColorMode is ColorTemperatureMireds between physical min and max mireds",
+      "conditions": [
+        {
+          "variable": "ColorMode",
+          "op": "eq",
+          "value": "2"
+        },
+        {
+          "variable": "ColorTemperatureMireds",
+          "op": "gt",
+          "value": "ColorTempPhysicalMinMireds"
+        },
+        {
+          "variable": "ColorTemperatureMireds",
+          "op": "lt",
+          "value": "ColorTempPhysicalMaxMireds"
+        },
+        {
+          "variable": "RemainingTime",
+          "op": "eq",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": [
+        "StepColorTemperature(StepSize=0)"
+      ]
+    },
+    {
+      "id": "ct_max",
+      "description": "ColorMode is ColorTemperatureMireds at physical maximum mireds",
+      "conditions": [
+        {
+          "variable": "ColorMode",
+          "op": "eq",
+          "value": "2"
+        },
+        {
+          "variable": "ColorTemperatureMireds",
+          "op": "eq",
+          "value": "ColorTempPhysicalMaxMireds"
+        },
+        {
+          "variable": "RemainingTime",
+          "op": "eq",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": [
+        "MoveToColorTemperature(ColorTemperatureMireds=65280)"
+      ]
+    },
+    {
+      "id": "ct_transitioning",
+      "description": "ColorMode is ColorTemperatureMireds and a transition is active",
+      "conditions": [
+        {
+          "variable": "ColorMode",
+          "op": "eq",
+          "value": "2"
+        },
+        {
+          "variable": "ColorTemperatureMireds",
+          "op": "ge",
+          "value": "ColorTempPhysicalMinMireds"
+        },
+        {
+          "variable": "ColorTemperatureMireds",
+          "op": "le",
+          "value": "ColorTempPhysicalMaxMireds"
+        },
+        {
+          "variable": "RemainingTime",
+          "op": "gt",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": [
+        "StepColorTemperature(StepSize=0)"
+      ]
+    },
+    {
+      "id": "ct_idle",
+      "description": "ColorMode is ColorTemperatureMireds and no transition is active",
+      "conditions": [
+        {
+          "variable": "ColorMode",
+          "op": "eq",
+          "value": "2"
+        },
+        {
+          "variable": "ColorTemperatureMireds",
+          "op": "ge",
+          "value": "ColorTempPhysicalMinMireds"
+        },
+        {
+          "variable": "ColorTemperatureMireds",
+          "op": "le",
+          "value": "ColorTempPhysicalMaxMireds"
+        },
+        {
+          "variable": "RemainingTime",
+          "op": "eq",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": []
+    }
+  ],
+  "transitions": [
+    {
+      "id": "t0_MoveToHue",
+      "from_state": "hs_idle",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Direction",
+          "type": "DirectionEnum",
+          "constraint": "0,1,2,3",
+          "invalid_values": [
+            "4",
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t1_MoveToHue",
+      "from_state": "hs_idle",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Direction",
+          "type": "DirectionEnum",
+          "constraint": "0,1,2,3",
+          "invalid_values": [
+            "4",
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t2_MoveToHue",
+      "from_state": "hs_transitioning",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Direction",
+          "type": "DirectionEnum",
+          "constraint": "0,1,2,3",
+          "invalid_values": [
+            "4",
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t3_MoveToHue",
+      "from_state": "hs_transitioning",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Direction",
+          "type": "DirectionEnum",
+          "constraint": "0,1,2,3",
+          "invalid_values": [
+            "4",
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t4_MoveToHue",
+      "from_state": "xy_idle",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Direction",
+          "type": "DirectionEnum",
+          "constraint": "0,1,2,3",
+          "invalid_values": [
+            "4",
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t5_MoveToHue",
+      "from_state": "xy_idle",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Direction",
+          "type": "DirectionEnum",
+          "constraint": "0,1,2,3",
+          "invalid_values": [
+            "4",
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t6_MoveToHue",
+      "from_state": "xy_transitioning",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Direction",
+          "type": "DirectionEnum",
+          "constraint": "0,1,2,3",
+          "invalid_values": [
+            "4",
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t7_MoveToHue",
+      "from_state": "xy_transitioning",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Direction",
+          "type": "DirectionEnum",
+          "constraint": "0,1,2,3",
+          "invalid_values": [
+            "4",
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t8_MoveToHue",
+      "from_state": "ct_min",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Direction",
+          "type": "DirectionEnum",
+          "constraint": "0,1,2,3",
+          "invalid_values": [
+            "4",
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t9_MoveToHue",
+      "from_state": "ct_min",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Direction",
+          "type": "DirectionEnum",
+          "constraint": "0,1,2,3",
+          "invalid_values": [
+            "4",
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t10_MoveToHue",
+      "from_state": "ct_mid",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Direction",
+          "type": "DirectionEnum",
+          "constraint": "0,1,2,3",
+          "invalid_values": [
+            "4",
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t11_MoveToHue",
+      "from_state": "ct_mid",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Direction",
+          "type": "DirectionEnum",
+          "constraint": "0,1,2,3",
+          "invalid_values": [
+            "4",
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t12_MoveToHue",
+      "from_state": "ct_max",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Direction",
+          "type": "DirectionEnum",
+          "constraint": "0,1,2,3",
+          "invalid_values": [
+            "4",
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t13_MoveToHue",
+      "from_state": "ct_max",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Direction",
+          "type": "DirectionEnum",
+          "constraint": "0,1,2,3",
+          "invalid_values": [
+            "4",
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t14_MoveToHue",
+      "from_state": "ct_transitioning",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Direction",
+          "type": "DirectionEnum",
+          "constraint": "0,1,2,3",
+          "invalid_values": [
+            "4",
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t15_MoveToHue",
+      "from_state": "ct_transitioning",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "MoveToHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Direction",
+          "type": "DirectionEnum",
+          "constraint": "0,1,2,3",
+          "invalid_values": [
+            "4",
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t16_MoveHue",
+      "from_state": "hs_idle",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "MoveHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": []
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode in {1, 3}",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t17_MoveHue",
+      "from_state": "hs_idle",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "MoveHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t18_MoveHue",
+      "from_state": "hs_transitioning",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "MoveHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": []
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode in {1, 3}",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t19_MoveHue",
+      "from_state": "hs_transitioning",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "MoveHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t20_MoveHue",
+      "from_state": "xy_idle",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "MoveHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": []
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode in {1, 3}",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t21_MoveHue",
+      "from_state": "xy_transitioning",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "MoveHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": []
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode in {1, 3}",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t22_MoveHue",
+      "from_state": "ct_min",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "MoveHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": []
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode in {1, 3}",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t23_MoveHue",
+      "from_state": "ct_mid",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "MoveHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": []
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode in {1, 3}",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t24_MoveHue",
+      "from_state": "ct_max",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "MoveHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": []
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode in {1, 3}",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t25_MoveHue",
+      "from_state": "ct_transitioning",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "MoveHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": []
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode in {1, 3}",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t26_StepHue",
+      "from_state": "hs_idle",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "StepHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t27_StepHue",
+      "from_state": "hs_transitioning",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "StepHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t28_StepHue",
+      "from_state": "xy_idle",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "StepHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t29_StepHue",
+      "from_state": "xy_transitioning",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "StepHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t30_StepHue",
+      "from_state": "ct_min",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "StepHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t31_StepHue",
+      "from_state": "ct_mid",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "StepHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t32_StepHue",
+      "from_state": "ct_max",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "StepHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t33_StepHue",
+      "from_state": "ct_transitioning",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "StepHue",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": []
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t34_MoveToSaturation",
+      "from_state": "hs_idle",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "MoveToSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t35_MoveToSaturation",
+      "from_state": "hs_idle",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "MoveToSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t36_MoveToSaturation",
+      "from_state": "hs_transitioning",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "MoveToSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t37_MoveToSaturation",
+      "from_state": "hs_transitioning",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "MoveToSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t38_MoveToSaturation",
+      "from_state": "xy_idle",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "MoveToSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t39_MoveToSaturation",
+      "from_state": "xy_idle",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "MoveToSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t40_MoveToSaturation",
+      "from_state": "xy_transitioning",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "MoveToSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t41_MoveToSaturation",
+      "from_state": "xy_transitioning",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "MoveToSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t42_MoveToSaturation",
+      "from_state": "ct_min",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "MoveToSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t43_MoveToSaturation",
+      "from_state": "ct_min",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "MoveToSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t44_MoveToSaturation",
+      "from_state": "ct_mid",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "MoveToSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t45_MoveToSaturation",
+      "from_state": "ct_mid",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "MoveToSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t46_MoveToSaturation",
+      "from_state": "ct_max",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "MoveToSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t47_MoveToSaturation",
+      "from_state": "ct_max",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "MoveToSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t48_MoveToSaturation",
+      "from_state": "ct_transitioning",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "MoveToSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t49_MoveToSaturation",
+      "from_state": "ct_transitioning",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "MoveToSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t50_MoveSaturation",
+      "from_state": "hs_idle",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "MoveSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode in {1,3} and Rate > 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t51_MoveSaturation",
+      "from_state": "hs_idle",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "MoveSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "0",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode eq 0",
+      "expected_error": null
+    },
+    {
+      "id": "t52_MoveSaturation",
+      "from_state": "hs_transitioning",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "MoveSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode in {1,3} and Rate > 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t53_MoveSaturation",
+      "from_state": "hs_transitioning",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "MoveSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "0",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode eq 0",
+      "expected_error": null
+    },
+    {
+      "id": "t54_MoveSaturation",
+      "from_state": "xy_idle",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "MoveSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode in {1,3} and Rate > 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t55_MoveSaturation",
+      "from_state": "xy_idle",
+      "to_state": "xy_idle",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "MoveSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "0",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode eq 0",
+      "expected_error": null
+    },
+    {
+      "id": "t56_MoveSaturation",
+      "from_state": "xy_transitioning",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "MoveSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode in {1,3} and Rate > 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t57_MoveSaturation",
+      "from_state": "xy_transitioning",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "MoveSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "0",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode eq 0",
+      "expected_error": null
+    },
+    {
+      "id": "t58_MoveSaturation",
+      "from_state": "ct_min",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "MoveSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode in {1,3} and Rate > 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t59_MoveSaturation",
+      "from_state": "ct_min",
+      "to_state": "ct_min",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "MoveSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "0",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode eq 0",
+      "expected_error": null
+    },
+    {
+      "id": "t60_MoveSaturation",
+      "from_state": "ct_mid",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "MoveSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode in {1,3} and Rate > 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t61_MoveSaturation",
+      "from_state": "ct_mid",
+      "to_state": "ct_mid",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "MoveSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "0",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode eq 0",
+      "expected_error": null
+    },
+    {
+      "id": "t62_MoveSaturation",
+      "from_state": "ct_max",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "MoveSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode in {1,3} and Rate > 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t63_MoveSaturation",
+      "from_state": "ct_max",
+      "to_state": "ct_max",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "MoveSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "0",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode eq 0",
+      "expected_error": null
+    },
+    {
+      "id": "t64_MoveSaturation",
+      "from_state": "ct_transitioning",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "MoveSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode in {1,3} and Rate > 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t65_MoveSaturation",
+      "from_state": "ct_transitioning",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "MoveSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "0",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode eq 0",
+      "expected_error": null
+    },
+    {
+      "id": "t66_StepSaturation",
+      "from_state": "hs_idle",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "StepSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "0",
+            "2"
+          ]
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t67_StepSaturation",
+      "from_state": "hs_transitioning",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "StepSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "0",
+            "2"
+          ]
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t68_StepSaturation",
+      "from_state": "xy_idle",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "StepSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "0",
+            "2"
+          ]
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t69_StepSaturation",
+      "from_state": "xy_transitioning",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "StepSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "0",
+            "2"
+          ]
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t70_StepSaturation",
+      "from_state": "ct_min",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "StepSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "0",
+            "2"
+          ]
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t71_StepSaturation",
+      "from_state": "ct_mid",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "StepSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "0",
+            "2"
+          ]
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t72_StepSaturation",
+      "from_state": "ct_max",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "StepSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "0",
+            "2"
+          ]
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t73_StepSaturation",
+      "from_state": "ct_transitioning",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "StepSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "0",
+            "2"
+          ]
+        },
+        {
+          "name": "StepSize",
+          "type": "uint8",
+          "constraint": "1..255",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint8",
+          "constraint": "0..255",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t74_MoveToHueAndSaturation",
+      "from_state": "hs_idle",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 6,
+      "command_name": "MoveToHueAndSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t75_MoveToHueAndSaturation",
+      "from_state": "hs_transitioning",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 6,
+      "command_name": "MoveToHueAndSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t76_MoveToHueAndSaturation",
+      "from_state": "xy_idle",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 6,
+      "command_name": "MoveToHueAndSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t77_MoveToHueAndSaturation",
+      "from_state": "xy_transitioning",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 6,
+      "command_name": "MoveToHueAndSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t78_MoveToHueAndSaturation",
+      "from_state": "ct_min",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 6,
+      "command_name": "MoveToHueAndSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t79_MoveToHueAndSaturation",
+      "from_state": "ct_mid",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 6,
+      "command_name": "MoveToHueAndSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t80_MoveToHueAndSaturation",
+      "from_state": "ct_max",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 6,
+      "command_name": "MoveToHueAndSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t81_MoveToHueAndSaturation",
+      "from_state": "ct_transitioning",
+      "to_state": "hs_transitioning",
+      "trigger_type": "command",
+      "command_id": 6,
+      "command_name": "MoveToHueAndSaturation",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Hue",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "Saturation",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t82_MoveToColor",
+      "from_state": "hs_idle",
+      "to_state": "xy_idle",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "MoveToColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorX",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorY",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t83_MoveToColor",
+      "from_state": "hs_idle",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "MoveToColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorX",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorY",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t84_MoveToColor",
+      "from_state": "hs_transitioning",
+      "to_state": "xy_idle",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "MoveToColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorX",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorY",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t85_MoveToColor",
+      "from_state": "hs_transitioning",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "MoveToColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorX",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorY",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t86_MoveToColor",
+      "from_state": "xy_idle",
+      "to_state": "xy_idle",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "MoveToColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorX",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorY",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t87_MoveToColor",
+      "from_state": "xy_idle",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "MoveToColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorX",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorY",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t88_MoveToColor",
+      "from_state": "xy_transitioning",
+      "to_state": "xy_idle",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "MoveToColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorX",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorY",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t89_MoveToColor",
+      "from_state": "xy_transitioning",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "MoveToColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorX",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorY",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t90_MoveToColor",
+      "from_state": "ct_min",
+      "to_state": "xy_idle",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "MoveToColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorX",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorY",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t91_MoveToColor",
+      "from_state": "ct_min",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "MoveToColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorX",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorY",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t92_MoveToColor",
+      "from_state": "ct_mid",
+      "to_state": "xy_idle",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "MoveToColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorX",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorY",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t93_MoveToColor",
+      "from_state": "ct_mid",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "MoveToColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorX",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorY",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t94_MoveToColor",
+      "from_state": "ct_max",
+      "to_state": "xy_idle",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "MoveToColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorX",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorY",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t95_MoveToColor",
+      "from_state": "ct_max",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "MoveToColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorX",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorY",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t96_MoveToColor",
+      "from_state": "ct_transitioning",
+      "to_state": "xy_idle",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "MoveToColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorX",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorY",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t97_MoveToColor",
+      "from_state": "ct_transitioning",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 7,
+      "command_name": "MoveToColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorX",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorY",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "1..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2",
+            "255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t98_MoveColor",
+      "from_state": "hs_idle",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 8,
+      "command_name": "MoveColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "RateX",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": []
+        },
+        {
+          "name": "RateY",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "RateX != 0 || RateY != 0",
+      "expected_error": null
+    },
+    {
+      "id": "t99_MoveColor",
+      "from_state": "hs_idle",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 8,
+      "command_name": "MoveColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "RateX",
+          "type": "int16",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "RateY",
+          "type": "int16",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "RateX == 0 && RateY == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t100_MoveColor",
+      "from_state": "hs_transitioning",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 8,
+      "command_name": "MoveColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "RateX",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": []
+        },
+        {
+          "name": "RateY",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "RateX != 0 || RateY != 0",
+      "expected_error": null
+    },
+    {
+      "id": "t101_MoveColor",
+      "from_state": "hs_transitioning",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 8,
+      "command_name": "MoveColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "RateX",
+          "type": "int16",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "RateY",
+          "type": "int16",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "RateX == 0 && RateY == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t102_MoveColor",
+      "from_state": "xy_idle",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 8,
+      "command_name": "MoveColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "RateX",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": []
+        },
+        {
+          "name": "RateY",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "RateX != 0 || RateY != 0",
+      "expected_error": null
+    },
+    {
+      "id": "t103_MoveColor",
+      "from_state": "xy_idle",
+      "to_state": "xy_idle",
+      "trigger_type": "command",
+      "command_id": 8,
+      "command_name": "MoveColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "RateX",
+          "type": "int16",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "RateY",
+          "type": "int16",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "RateX == 0 && RateY == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t104_MoveColor",
+      "from_state": "xy_transitioning",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 8,
+      "command_name": "MoveColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "RateX",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": []
+        },
+        {
+          "name": "RateY",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "RateX != 0 || RateY != 0",
+      "expected_error": null
+    },
+    {
+      "id": "t105_MoveColor",
+      "from_state": "xy_transitioning",
+      "to_state": "xy_idle",
+      "trigger_type": "command",
+      "command_id": 8,
+      "command_name": "MoveColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "RateX",
+          "type": "int16",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "RateY",
+          "type": "int16",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "RateX == 0 && RateY == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t106_MoveColor",
+      "from_state": "ct_min",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 8,
+      "command_name": "MoveColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "RateX",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": []
+        },
+        {
+          "name": "RateY",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "RateX != 0 || RateY != 0",
+      "expected_error": null
+    },
+    {
+      "id": "t107_MoveColor",
+      "from_state": "ct_min",
+      "to_state": "ct_min",
+      "trigger_type": "command",
+      "command_id": 8,
+      "command_name": "MoveColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "RateX",
+          "type": "int16",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "RateY",
+          "type": "int16",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "RateX == 0 && RateY == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t108_MoveColor",
+      "from_state": "ct_mid",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 8,
+      "command_name": "MoveColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "RateX",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": []
+        },
+        {
+          "name": "RateY",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "RateX != 0 || RateY != 0",
+      "expected_error": null
+    },
+    {
+      "id": "t109_MoveColor",
+      "from_state": "ct_mid",
+      "to_state": "ct_mid",
+      "trigger_type": "command",
+      "command_id": 8,
+      "command_name": "MoveColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "RateX",
+          "type": "int16",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "RateY",
+          "type": "int16",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "RateX == 0 && RateY == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t110_MoveColor",
+      "from_state": "ct_max",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 8,
+      "command_name": "MoveColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "RateX",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": []
+        },
+        {
+          "name": "RateY",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "RateX != 0 || RateY != 0",
+      "expected_error": null
+    },
+    {
+      "id": "t111_MoveColor",
+      "from_state": "ct_max",
+      "to_state": "ct_max",
+      "trigger_type": "command",
+      "command_id": 8,
+      "command_name": "MoveColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "RateX",
+          "type": "int16",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "RateY",
+          "type": "int16",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "RateX == 0 && RateY == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t112_MoveColor",
+      "from_state": "ct_transitioning",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 8,
+      "command_name": "MoveColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "RateX",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": []
+        },
+        {
+          "name": "RateY",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "RateX != 0 || RateY != 0",
+      "expected_error": null
+    },
+    {
+      "id": "t113_MoveColor",
+      "from_state": "ct_transitioning",
+      "to_state": "ct_idle",
+      "trigger_type": "command",
+      "command_id": 8,
+      "command_name": "MoveColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "RateX",
+          "type": "int16",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "RateY",
+          "type": "int16",
+          "constraint": "0",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "RateX == 0 && RateY == 0",
+      "expected_error": null
+    },
+    {
+      "id": "t114_StepColor",
+      "from_state": "hs_idle",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 9,
+      "command_name": "StepColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepX",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "StepY",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepX != 0 || StepY != 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t115_StepColor",
+      "from_state": "hs_transitioning",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 9,
+      "command_name": "StepColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepX",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "StepY",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepX != 0 || StepY != 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t116_StepColor",
+      "from_state": "xy_idle",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 9,
+      "command_name": "StepColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepX",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "StepY",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepX != 0 || StepY != 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t117_StepColor",
+      "from_state": "xy_transitioning",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 9,
+      "command_name": "StepColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepX",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "StepY",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepX != 0 || StepY != 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t118_StepColor",
+      "from_state": "ct_min",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 9,
+      "command_name": "StepColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepX",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "StepY",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepX != 0 || StepY != 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t119_StepColor",
+      "from_state": "ct_mid",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 9,
+      "command_name": "StepColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepX",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "StepY",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepX != 0 || StepY != 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t120_StepColor",
+      "from_state": "ct_max",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 9,
+      "command_name": "StepColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepX",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "StepY",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepX != 0 || StepY != 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t121_StepColor",
+      "from_state": "ct_transitioning",
+      "to_state": "xy_transitioning",
+      "trigger_type": "command",
+      "command_id": 9,
+      "command_name": "StepColor",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepX",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "StepY",
+          "type": "int16",
+          "constraint": "-32768..32767",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "StepX != 0 || StepY != 0",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t122_MoveToColorTemperature",
+      "from_state": "hs_idle",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 10,
+      "command_name": "MoveToColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorTemperatureMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "CONSTRAINT_ERROR"
+    },
+    {
+      "id": "t123_MoveToColorTemperature",
+      "from_state": "hs_transitioning",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 10,
+      "command_name": "MoveToColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorTemperatureMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "CONSTRAINT_ERROR"
+    },
+    {
+      "id": "t124_MoveToColorTemperature",
+      "from_state": "xy_idle",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 10,
+      "command_name": "MoveToColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorTemperatureMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "CONSTRAINT_ERROR"
+    },
+    {
+      "id": "t125_MoveToColorTemperature",
+      "from_state": "xy_transitioning",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 10,
+      "command_name": "MoveToColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorTemperatureMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "CONSTRAINT_ERROR"
+    },
+    {
+      "id": "t126_MoveToColorTemperature",
+      "from_state": "ct_min",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 10,
+      "command_name": "MoveToColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorTemperatureMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "CONSTRAINT_ERROR"
+    },
+    {
+      "id": "t127_MoveToColorTemperature",
+      "from_state": "ct_mid",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 10,
+      "command_name": "MoveToColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorTemperatureMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "CONSTRAINT_ERROR"
+    },
+    {
+      "id": "t128_MoveToColorTemperature",
+      "from_state": "ct_max",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 10,
+      "command_name": "MoveToColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorTemperatureMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "CONSTRAINT_ERROR"
+    },
+    {
+      "id": "t129_MoveToColorTemperature",
+      "from_state": "ct_transitioning",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 10,
+      "command_name": "MoveToColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "ColorTemperatureMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280",
+            "65535"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": "CONSTRAINT_ERROR"
+    },
+    {
+      "id": "t130_StopMoveStep",
+      "from_state": "hs_transitioning",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 71,
+      "command_name": "StopMoveStep",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t131_StopMoveStep",
+      "from_state": "hs_idle",
+      "to_state": "hs_idle",
+      "trigger_type": "command",
+      "command_id": 71,
+      "command_name": "StopMoveStep",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t132_StopMoveStep",
+      "from_state": "xy_transitioning",
+      "to_state": "xy_idle",
+      "trigger_type": "command",
+      "command_id": 71,
+      "command_name": "StopMoveStep",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t133_StopMoveStep",
+      "from_state": "xy_idle",
+      "to_state": "xy_idle",
+      "trigger_type": "command",
+      "command_id": 71,
+      "command_name": "StopMoveStep",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t134_StopMoveStep",
+      "from_state": "ct_transitioning",
+      "to_state": "ct_min",
+      "trigger_type": "command",
+      "command_id": 71,
+      "command_name": "StopMoveStep",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "ColorTemperatureMireds eq ColorTempPhysicalMinMireds",
+      "expected_error": null
+    },
+    {
+      "id": "t135_StopMoveStep",
+      "from_state": "ct_transitioning",
+      "to_state": "ct_mid",
+      "trigger_type": "command",
+      "command_id": 71,
+      "command_name": "StopMoveStep",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "ColorTemperatureMireds gt ColorTempPhysicalMinMireds and ColorTemperatureMireds lt ColorTempPhysicalMaxMireds",
+      "expected_error": null
+    },
+    {
+      "id": "t136_StopMoveStep",
+      "from_state": "ct_transitioning",
+      "to_state": "ct_max",
+      "trigger_type": "command",
+      "command_id": 71,
+      "command_name": "StopMoveStep",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "ColorTemperatureMireds eq ColorTempPhysicalMaxMireds",
+      "expected_error": null
+    },
+    {
+      "id": "t137_StopMoveStep",
+      "from_state": "ct_min",
+      "to_state": "ct_min",
+      "trigger_type": "command",
+      "command_id": 71,
+      "command_name": "StopMoveStep",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t138_StopMoveStep",
+      "from_state": "ct_mid",
+      "to_state": "ct_mid",
+      "trigger_type": "command",
+      "command_id": 71,
+      "command_name": "StopMoveStep",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t139_StopMoveStep",
+      "from_state": "ct_max",
+      "to_state": "ct_max",
+      "trigger_type": "command",
+      "command_id": 71,
+      "command_name": "StopMoveStep",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": null,
+      "expected_error": null
+    },
+    {
+      "id": "t140_MoveColorTemperature",
+      "from_state": "hs_idle",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 75,
+      "command_name": "MoveColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint16",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMinimumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMaximumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode == 1 (Up) or MoveMode == 3 (Down); Rate > 0; ExecuteIfOff == 1 or OnOff == TRUE",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t141_MoveColorTemperature",
+      "from_state": "hs_transitioning",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 75,
+      "command_name": "MoveColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint16",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMinimumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMaximumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode == 1 (Up) or MoveMode == 3 (Down); Rate > 0; ExecuteIfOff == 1 or OnOff == TRUE",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t142_MoveColorTemperature",
+      "from_state": "xy_idle",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 75,
+      "command_name": "MoveColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint16",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMinimumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMaximumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode == 1 (Up) or MoveMode == 3 (Down); Rate > 0; ExecuteIfOff == 1 or OnOff == TRUE",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t143_MoveColorTemperature",
+      "from_state": "xy_transitioning",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 75,
+      "command_name": "MoveColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint16",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMinimumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMaximumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode == 1 (Up) or MoveMode == 3 (Down); Rate > 0; ExecuteIfOff == 1 or OnOff == TRUE",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t144_MoveColorTemperature",
+      "from_state": "ct_min",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 75,
+      "command_name": "MoveColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint16",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMinimumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMaximumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode == 1 (Up); Rate > 0; ExecuteIfOff == 1 or OnOff == TRUE",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t145_MoveColorTemperature",
+      "from_state": "ct_min",
+      "to_state": "ct_min",
+      "trigger_type": "command",
+      "command_id": 75,
+      "command_name": "MoveColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "3",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint16",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMinimumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMaximumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode == 3 (Down); Rate > 0; ExecuteIfOff == 1 or OnOff == TRUE",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t146_MoveColorTemperature",
+      "from_state": "ct_mid",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 75,
+      "command_name": "MoveColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint16",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMinimumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMaximumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode == 1 (Up) or MoveMode == 3 (Down); Rate > 0; ExecuteIfOff == 1 or OnOff == TRUE",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t147_MoveColorTemperature",
+      "from_state": "ct_mid",
+      "to_state": "ct_mid",
+      "trigger_type": "command",
+      "command_id": 75,
+      "command_name": "MoveColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "0",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint16",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "ColorTemperatureMinimumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMaximumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode == 0 (Stop); ExecuteIfOff == 1 or OnOff == TRUE",
+      "expected_error": null
+    },
+    {
+      "id": "t148_MoveColorTemperature",
+      "from_state": "ct_max",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 75,
+      "command_name": "MoveColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "3",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint16",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMinimumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMaximumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode == 3 (Down); Rate > 0; ExecuteIfOff == 1 or OnOff == TRUE",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t149_MoveColorTemperature",
+      "from_state": "ct_max",
+      "to_state": "ct_max",
+      "trigger_type": "command",
+      "command_id": 75,
+      "command_name": "MoveColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint16",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMinimumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMaximumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode == 1 (Up); Rate > 0; ExecuteIfOff == 1 or OnOff == TRUE",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t150_MoveColorTemperature",
+      "from_state": "ct_transitioning",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 75,
+      "command_name": "MoveColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint16",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMinimumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMaximumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode == 1 (Up) or MoveMode == 3 (Down); Rate > 0; ExecuteIfOff == 1 or OnOff == TRUE",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t151_MoveColorTemperature",
+      "from_state": "ct_transitioning",
+      "to_state": "ct_mid",
+      "trigger_type": "command",
+      "command_id": 75,
+      "command_name": "MoveColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "MoveMode",
+          "type": "MoveModeEnum",
+          "constraint": "0",
+          "invalid_values": [
+            "2"
+          ]
+        },
+        {
+          "name": "Rate",
+          "type": "uint16",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "ColorTemperatureMinimumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMaximumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": []
+        }
+      ],
+      "guard": "MoveMode == 0 (Stop); ExecuteIfOff == 1 or OnOff == TRUE",
+      "expected_error": null
+    },
+    {
+      "id": "t152_StepColorTemperature",
+      "from_state": "hs_idle",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 76,
+      "command_name": "StepColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "0",
+            "2",
+            "4..255"
+          ]
+        },
+        {
+          "name": "StepSize",
+          "type": "uint16",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMinimumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280..65535"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMaximumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280..65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0 and (OnOff == TRUE or ExecuteIfOff == 1); StepSize == 0 returns INVALID_COMMAND",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t153_StepColorTemperature",
+      "from_state": "hs_transitioning",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 76,
+      "command_name": "StepColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "0",
+            "2",
+            "4..255"
+          ]
+        },
+        {
+          "name": "StepSize",
+          "type": "uint16",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMinimumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280..65535"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMaximumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280..65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0 and (OnOff == TRUE or ExecuteIfOff == 1); StepSize == 0 returns INVALID_COMMAND",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t154_StepColorTemperature",
+      "from_state": "xy_idle",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 76,
+      "command_name": "StepColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "0",
+            "2",
+            "4..255"
+          ]
+        },
+        {
+          "name": "StepSize",
+          "type": "uint16",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMinimumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280..65535"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMaximumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280..65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0 and (OnOff == TRUE or ExecuteIfOff == 1); StepSize == 0 returns INVALID_COMMAND",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t155_StepColorTemperature",
+      "from_state": "xy_transitioning",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 76,
+      "command_name": "StepColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "0",
+            "2",
+            "4..255"
+          ]
+        },
+        {
+          "name": "StepSize",
+          "type": "uint16",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMinimumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280..65535"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMaximumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280..65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0 and (OnOff == TRUE or ExecuteIfOff == 1); StepSize == 0 returns INVALID_COMMAND",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t156_StepColorTemperature",
+      "from_state": "ct_min",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 76,
+      "command_name": "StepColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "0",
+            "2",
+            "4..255"
+          ]
+        },
+        {
+          "name": "StepSize",
+          "type": "uint16",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMinimumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280..65535"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMaximumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280..65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        }
+      ],
+      "guard": "StepMode == 1 and TransitionTime > 0 and (OnOff == TRUE or ExecuteIfOff == 1); StepSize == 0 returns INVALID_COMMAND",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t157_StepColorTemperature",
+      "from_state": "ct_mid",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 76,
+      "command_name": "StepColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "0",
+            "2",
+            "4..255"
+          ]
+        },
+        {
+          "name": "StepSize",
+          "type": "uint16",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMinimumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280..65535"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMaximumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280..65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0 and (OnOff == TRUE or ExecuteIfOff == 1); StepSize == 0 returns INVALID_COMMAND",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t158_StepColorTemperature",
+      "from_state": "ct_max",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 76,
+      "command_name": "StepColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "0",
+            "2",
+            "4..255"
+          ]
+        },
+        {
+          "name": "StepSize",
+          "type": "uint16",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMinimumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280..65535"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMaximumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280..65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        }
+      ],
+      "guard": "StepMode == 3 and TransitionTime > 0 and (OnOff == TRUE or ExecuteIfOff == 1); StepSize == 0 returns INVALID_COMMAND",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t159_StepColorTemperature",
+      "from_state": "ct_transitioning",
+      "to_state": "ct_transitioning",
+      "trigger_type": "command",
+      "command_id": 76,
+      "command_name": "StepColorTemperature",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "StepMode",
+          "type": "StepModeEnum",
+          "constraint": "1,3",
+          "invalid_values": [
+            "0",
+            "2",
+            "4..255"
+          ]
+        },
+        {
+          "name": "StepSize",
+          "type": "uint16",
+          "constraint": "1..65535",
+          "invalid_values": [
+            "0"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint16",
+          "constraint": "0..65534",
+          "invalid_values": [
+            "65535"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMinimumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280..65535"
+          ]
+        },
+        {
+          "name": "ColorTemperatureMaximumMireds",
+          "type": "uint16",
+          "constraint": "0..65279",
+          "invalid_values": [
+            "65280..65535"
+          ]
+        },
+        {
+          "name": "OptionsMask",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "OptionsOverride",
+          "type": "OptionsBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        }
+      ],
+      "guard": "TransitionTime > 0 and (OnOff == TRUE or ExecuteIfOff == 1); StepSize == 0 returns INVALID_COMMAND",
+      "expected_error": "INVALID_COMMAND"
+    }
+  ],
+  "models": [
+    "gemini-4-hydrogen"
+  ],
+  "spec": "matter1.4-cluster.pdf"
+}

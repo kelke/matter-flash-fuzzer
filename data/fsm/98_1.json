@@ -1,0 +1,2132 @@
+{
+  "cluster_id": 98,
+  "cluster_name": "ScenesManagement",
+  "feature_map": 1,
+  "state_variables": [
+    {
+      "name": "SceneTableSize",
+      "attribute_id": 1,
+      "type": "uint16"
+    },
+    {
+      "name": "FabricSceneInfo",
+      "attribute_id": 2,
+      "type": "list[SceneInfoStruct]"
+    }
+  ],
+  "states": [
+    {
+      "id": "empty_no_scene_invoked",
+      "description": "No scenes stored for fabric and no scene invoked",
+      "conditions": [
+        {
+          "variable": "SceneTableSize",
+          "op": "ge",
+          "value": "16"
+        },
+        {
+          "variable": "FabricSceneInfo",
+          "op": "eq",
+          "value": "SceneCount=0, CurrentScene=255, CurrentGroup=0, SceneValid=False, RemainingCapacity>0"
+        }
+      ],
+      "unaccepted_values": [
+        "ViewScene (NOT_FOUND)",
+        "RemoveScene (NOT_FOUND)",
+        "RecallScene (NOT_FOUND)",
+        "CopyScene with CopyAllScenes=0 (NOT_FOUND)",
+        "Commands with non-zero GroupID not in Group Table (INVALID_COMMAND)",
+        "Commands without accessing fabric (UNSUPPORTED_ACCESS)"
+      ]
+    },
+    {
+      "id": "scenes_stored_none_invoked",
+      "description": "Scenes stored for fabric with capacity remaining and no scene invoked",
+      "conditions": [
+        {
+          "variable": "SceneTableSize",
+          "op": "ge",
+          "value": "16"
+        },
+        {
+          "variable": "FabricSceneInfo",
+          "op": "eq",
+          "value": "SceneCount>0, CurrentScene=255, CurrentGroup=0, SceneValid=False, RemainingCapacity>0"
+        }
+      ],
+      "unaccepted_values": [
+        "ViewScene/RemoveScene/RecallScene/CopyScene for missing GroupID/SceneID (NOT_FOUND)",
+        "Commands with non-zero GroupID not in Group Table (INVALID_COMMAND)",
+        "Commands without accessing fabric (UNSUPPORTED_ACCESS)"
+      ]
+    },
+    {
+      "id": "scene_active_valid",
+      "description": "A stored scene is active and server state matches CurrentScene and CurrentGroup",
+      "conditions": [
+        {
+          "variable": "SceneTableSize",
+          "op": "ge",
+          "value": "16"
+        },
+        {
+          "variable": "FabricSceneInfo",
+          "op": "eq",
+          "value": "SceneCount>0, CurrentScene in [0,254], CurrentGroup in [0,65535], SceneValid=True, RemainingCapacity>=0"
+        }
+      ],
+      "unaccepted_values": [
+        "ViewScene/RemoveScene/RecallScene/CopyScene for missing GroupID/SceneID (NOT_FOUND)",
+        "Commands with non-zero GroupID not in Group Table (INVALID_COMMAND)",
+        "Commands without accessing fabric (UNSUPPORTED_ACCESS)"
+      ]
+    },
+    {
+      "id": "scene_invoked_invalid",
+      "description": "A scene was previously invoked but server state no longer matches CurrentScene and CurrentGroup",
+      "conditions": [
+        {
+          "variable": "SceneTableSize",
+          "op": "ge",
+          "value": "16"
+        },
+        {
+          "variable": "FabricSceneInfo",
+          "op": "eq",
+          "value": "SceneCount>=0, CurrentScene in [0,254], CurrentGroup in [0,65535], SceneValid=False, RemainingCapacity>=0"
+        }
+      ],
+      "unaccepted_values": [
+        "ViewScene/RemoveScene/RecallScene/CopyScene for missing GroupID/SceneID (NOT_FOUND)",
+        "Commands with non-zero GroupID not in Group Table (INVALID_COMMAND)",
+        "Commands without accessing fabric (UNSUPPORTED_ACCESS)"
+      ]
+    },
+    {
+      "id": "table_full",
+      "description": "Scene Table capacity exhausted for the accessing fabric",
+      "conditions": [
+        {
+          "variable": "SceneTableSize",
+          "op": "ge",
+          "value": "16"
+        },
+        {
+          "variable": "FabricSceneInfo",
+          "op": "eq",
+          "value": "SceneCount>0, RemainingCapacity=0"
+        }
+      ],
+      "unaccepted_values": [
+        "AddScene for new GroupID/SceneID (RESOURCE_EXHAUSTED)",
+        "StoreScene for new GroupID/SceneID (RESOURCE_EXHAUSTED)",
+        "CopyScene to new GroupID/SceneID (RESOURCE_EXHAUSTED)",
+        "Commands with non-zero GroupID not in Group Table (INVALID_COMMAND)",
+        "Commands without accessing fabric (UNSUPPORTED_ACCESS)"
+      ]
+    },
+    {
+      "id": "empty_scene_invoked_valid",
+      "description": "No scenes stored for fabric after removing last scene while CurrentScene, CurrentGroup, and SceneValid remain set",
+      "conditions": [
+        {
+          "variable": "SceneTableSize",
+          "op": "ge",
+          "value": "16"
+        },
+        {
+          "variable": "SceneCount",
+          "op": "eq",
+          "value": "0"
+        },
+        {
+          "variable": "CurrentScene",
+          "op": "in",
+          "value": "[0,254]"
+        },
+        {
+          "variable": "CurrentGroup",
+          "op": "in",
+          "value": "[0,65535]"
+        },
+        {
+          "variable": "SceneValid",
+          "op": "eq",
+          "value": "True"
+        },
+        {
+          "variable": "RemainingCapacity",
+          "op": "gt",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": [
+        "RemoveScene when no accessing fabric is available (UNSUPPORTED_ACCESS)",
+        "RemoveScene with non-zero GroupID not in Group Table (INVALID_COMMAND)",
+        "RemoveScene with any existing GroupID and SceneID (NOT_FOUND)",
+        "SceneID=255"
+      ]
+    },
+    {
+      "id": "empty_scene_active_valid",
+      "description": "All scenes removed for fabric while CurrentScene and CurrentGroup remain set and SceneValid is True",
+      "conditions": [
+        {
+          "variable": "SceneTableSize",
+          "op": "ge",
+          "value": "16"
+        },
+        {
+          "variable": "FabricSceneInfo.SceneCount",
+          "op": "eq",
+          "value": "0"
+        },
+        {
+          "variable": "FabricSceneInfo.CurrentScene",
+          "op": "in",
+          "value": "[0,254]"
+        },
+        {
+          "variable": "FabricSceneInfo.CurrentGroup",
+          "op": "in",
+          "value": "[0,65535]"
+        },
+        {
+          "variable": "FabricSceneInfo.SceneValid",
+          "op": "eq",
+          "value": "True"
+        },
+        {
+          "variable": "FabricSceneInfo.RemainingCapacity",
+          "op": "gt",
+          "value": "0"
+        }
+      ],
+      "unaccepted_values": [
+        "GroupID != 0 not in Group Table",
+        "No accessing fabric (UNSUPPORTED_ACCESS)"
+      ]
+    }
+  ],
+  "transitions": [
+    {
+      "id": "t0_AddScene",
+      "from_state": "empty_no_scene_invoked",
+      "to_state": "scenes_stored_none_invoked",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "AddScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint32",
+          "constraint": "0..60000000",
+          "invalid_values": [
+            "60000001..4294967295"
+          ]
+        },
+        {
+          "name": "SceneName",
+          "type": "string",
+          "constraint": "0..16",
+          "invalid_values": [
+            "length > 16"
+          ]
+        },
+        {
+          "name": "ExtensionFieldSetStructs",
+          "type": "list[ExtensionFieldSetStruct]",
+          "constraint": "valid ExtensionFieldSetStruct list",
+          "invalid_values": [
+            "invalid ExtensionFieldSetStruct"
+          ]
+        }
+      ],
+      "guard": "Accessing fabric available and (GroupID == 0 or GroupID in Group Table) and valid ExtensionFieldSetStructs and RemainingCapacity > 1",
+      "expected_error": null
+    },
+    {
+      "id": "t1_AddScene",
+      "from_state": "empty_no_scene_invoked",
+      "to_state": "table_full",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "AddScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint32",
+          "constraint": "0..60000000",
+          "invalid_values": [
+            "60000001..4294967295"
+          ]
+        },
+        {
+          "name": "SceneName",
+          "type": "string",
+          "constraint": "0..16",
+          "invalid_values": [
+            "length > 16"
+          ]
+        },
+        {
+          "name": "ExtensionFieldSetStructs",
+          "type": "list[ExtensionFieldSetStruct]",
+          "constraint": "valid ExtensionFieldSetStruct list",
+          "invalid_values": [
+            "invalid ExtensionFieldSetStruct"
+          ]
+        }
+      ],
+      "guard": "Accessing fabric available and (GroupID == 0 or GroupID in Group Table) and valid ExtensionFieldSetStructs and RemainingCapacity == 1",
+      "expected_error": null
+    },
+    {
+      "id": "t2_AddScene",
+      "from_state": "empty_no_scene_invoked",
+      "to_state": "empty_no_scene_invoked",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "AddScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint32",
+          "constraint": "0..60000000",
+          "invalid_values": [
+            "60000001..4294967295"
+          ]
+        },
+        {
+          "name": "SceneName",
+          "type": "string",
+          "constraint": "0..16",
+          "invalid_values": [
+            "length > 16"
+          ]
+        },
+        {
+          "name": "ExtensionFieldSetStructs",
+          "type": "list[ExtensionFieldSetStruct]",
+          "constraint": "valid ExtensionFieldSetStruct list",
+          "invalid_values": [
+            "invalid ExtensionFieldSetStruct"
+          ]
+        }
+      ],
+      "guard": "(GroupID != 0 and GroupID not in Group Table) or invalid ExtensionFieldSetStructs",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t3_AddScene",
+      "from_state": "scenes_stored_none_invoked",
+      "to_state": "scenes_stored_none_invoked",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "AddScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint32",
+          "constraint": "0..60000000",
+          "invalid_values": [
+            "60000001..4294967295"
+          ]
+        },
+        {
+          "name": "SceneName",
+          "type": "string",
+          "constraint": "0..16",
+          "invalid_values": [
+            "length > 16"
+          ]
+        },
+        {
+          "name": "ExtensionFieldSetStructs",
+          "type": "list[ExtensionFieldSetStruct]",
+          "constraint": "valid ExtensionFieldSetStruct list",
+          "invalid_values": [
+            "invalid ExtensionFieldSetStruct"
+          ]
+        }
+      ],
+      "guard": "Accessing fabric available and (GroupID == 0 or GroupID in Group Table) and valid ExtensionFieldSetStructs and (scene already exists for GroupID and SceneID or RemainingCapacity > 1)",
+      "expected_error": null
+    },
+    {
+      "id": "t4_AddScene",
+      "from_state": "scenes_stored_none_invoked",
+      "to_state": "table_full",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "AddScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint32",
+          "constraint": "0..60000000",
+          "invalid_values": [
+            "60000001..4294967295"
+          ]
+        },
+        {
+          "name": "SceneName",
+          "type": "string",
+          "constraint": "0..16",
+          "invalid_values": [
+            "length > 16"
+          ]
+        },
+        {
+          "name": "ExtensionFieldSetStructs",
+          "type": "list[ExtensionFieldSetStruct]",
+          "constraint": "valid ExtensionFieldSetStruct list",
+          "invalid_values": [
+            "invalid ExtensionFieldSetStruct"
+          ]
+        }
+      ],
+      "guard": "Accessing fabric available and (GroupID == 0 or GroupID in Group Table) and valid ExtensionFieldSetStructs and scene does not exist and RemainingCapacity == 1",
+      "expected_error": null
+    },
+    {
+      "id": "t5_AddScene",
+      "from_state": "scene_active_valid",
+      "to_state": "scene_active_valid",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "AddScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint32",
+          "constraint": "0..60000000",
+          "invalid_values": [
+            "60000001..4294967295"
+          ]
+        },
+        {
+          "name": "SceneName",
+          "type": "string",
+          "constraint": "0..16",
+          "invalid_values": [
+            "length > 16"
+          ]
+        },
+        {
+          "name": "ExtensionFieldSetStructs",
+          "type": "list[ExtensionFieldSetStruct]",
+          "constraint": "valid ExtensionFieldSetStruct list",
+          "invalid_values": [
+            "invalid ExtensionFieldSetStruct"
+          ]
+        }
+      ],
+      "guard": "Accessing fabric available and (GroupID == 0 or GroupID in Group Table) and valid ExtensionFieldSetStructs and (scene already exists for GroupID and SceneID or RemainingCapacity > 0)",
+      "expected_error": null
+    },
+    {
+      "id": "t6_AddScene",
+      "from_state": "scene_invoked_invalid",
+      "to_state": "scene_invoked_invalid",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "AddScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint32",
+          "constraint": "0..60000000",
+          "invalid_values": [
+            "60000001..4294967295"
+          ]
+        },
+        {
+          "name": "SceneName",
+          "type": "string",
+          "constraint": "0..16",
+          "invalid_values": [
+            "length > 16"
+          ]
+        },
+        {
+          "name": "ExtensionFieldSetStructs",
+          "type": "list[ExtensionFieldSetStruct]",
+          "constraint": "valid ExtensionFieldSetStruct list",
+          "invalid_values": [
+            "invalid ExtensionFieldSetStruct"
+          ]
+        }
+      ],
+      "guard": "Accessing fabric available and (GroupID == 0 or GroupID in Group Table) and valid ExtensionFieldSetStructs and (scene already exists for GroupID and SceneID or RemainingCapacity > 0)",
+      "expected_error": null
+    },
+    {
+      "id": "t7_AddScene",
+      "from_state": "table_full",
+      "to_state": "table_full",
+      "trigger_type": "command",
+      "command_id": 0,
+      "command_name": "AddScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint32",
+          "constraint": "0..60000000",
+          "invalid_values": [
+            "60000001..4294967295"
+          ]
+        },
+        {
+          "name": "SceneName",
+          "type": "string",
+          "constraint": "0..16",
+          "invalid_values": [
+            "length > 16"
+          ]
+        },
+        {
+          "name": "ExtensionFieldSetStructs",
+          "type": "list[ExtensionFieldSetStruct]",
+          "constraint": "valid ExtensionFieldSetStruct list",
+          "invalid_values": [
+            "invalid ExtensionFieldSetStruct"
+          ]
+        }
+      ],
+      "guard": "Accessing fabric available and (GroupID == 0 or GroupID in Group Table) and valid ExtensionFieldSetStructs and scene already exists for GroupID and SceneID",
+      "expected_error": null
+    },
+    {
+      "id": "t8_ViewScene",
+      "from_state": "empty_no_scene_invoked",
+      "to_state": "empty_no_scene_invoked",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "ViewScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "GroupID == 0 or GroupID in Group Table; Scene Table has no entry for (GroupID, SceneID); unicast generates ViewSceneResponse",
+      "expected_error": "NOT_FOUND"
+    },
+    {
+      "id": "t9_ViewScene",
+      "from_state": "scenes_stored_none_invoked",
+      "to_state": "scenes_stored_none_invoked",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "ViewScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and (GroupID, SceneID) in Scene Table; unicast generates ViewSceneResponse",
+      "expected_error": null
+    },
+    {
+      "id": "t10_ViewScene",
+      "from_state": "scene_active_valid",
+      "to_state": "scene_active_valid",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "ViewScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and (GroupID, SceneID) in Scene Table; unicast generates ViewSceneResponse",
+      "expected_error": null
+    },
+    {
+      "id": "t11_ViewScene",
+      "from_state": "scene_invoked_invalid",
+      "to_state": "scene_invoked_invalid",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "ViewScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "SceneCount > 0 and (GroupID == 0 or GroupID in Group Table) and (GroupID, SceneID) in Scene Table; unicast generates ViewSceneResponse",
+      "expected_error": null
+    },
+    {
+      "id": "t12_ViewScene",
+      "from_state": "table_full",
+      "to_state": "table_full",
+      "trigger_type": "command",
+      "command_id": 1,
+      "command_name": "ViewScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and (GroupID, SceneID) in Scene Table; unicast generates ViewSceneResponse",
+      "expected_error": null
+    },
+    {
+      "id": "t13_RemoveScene",
+      "from_state": "empty_no_scene_invoked",
+      "to_state": "empty_no_scene_invoked",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "RemoveScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "GroupID != 0 and GroupID not in Group Table",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t14_RemoveScene",
+      "from_state": "scenes_stored_none_invoked",
+      "to_state": "scenes_stored_none_invoked",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "RemoveScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and (GroupID, SceneID) in Scene Table and SceneCount > 1",
+      "expected_error": null
+    },
+    {
+      "id": "t15_RemoveScene",
+      "from_state": "scenes_stored_none_invoked",
+      "to_state": "empty_no_scene_invoked",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "RemoveScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and (GroupID, SceneID) in Scene Table and SceneCount == 1",
+      "expected_error": null
+    },
+    {
+      "id": "t16_RemoveScene",
+      "from_state": "scene_active_valid",
+      "to_state": "scene_active_valid",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "RemoveScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and (GroupID, SceneID) in Scene Table and SceneCount > 1",
+      "expected_error": null
+    },
+    {
+      "id": "t17_RemoveScene",
+      "from_state": "scene_active_valid",
+      "to_state": "empty_scene_invoked_valid",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "RemoveScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and (GroupID, SceneID) in Scene Table and SceneCount == 1",
+      "expected_error": null
+    },
+    {
+      "id": "t18_RemoveScene",
+      "from_state": "scene_invoked_invalid",
+      "to_state": "scene_invoked_invalid",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "RemoveScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and (GroupID, SceneID) in Scene Table and SceneCount > 0",
+      "expected_error": null
+    },
+    {
+      "id": "t19_RemoveScene",
+      "from_state": "table_full",
+      "to_state": "scenes_stored_none_invoked",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "RemoveScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and (GroupID, SceneID) in Scene Table and CurrentScene == 255 and SceneCount > 1",
+      "expected_error": null
+    },
+    {
+      "id": "t20_RemoveScene",
+      "from_state": "table_full",
+      "to_state": "empty_no_scene_invoked",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "RemoveScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and (GroupID, SceneID) in Scene Table and CurrentScene == 255 and SceneCount == 1",
+      "expected_error": null
+    },
+    {
+      "id": "t21_RemoveScene",
+      "from_state": "table_full",
+      "to_state": "scene_active_valid",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "RemoveScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and (GroupID, SceneID) in Scene Table and CurrentScene != 255 and SceneValid == True and SceneCount > 1",
+      "expected_error": null
+    },
+    {
+      "id": "t22_RemoveScene",
+      "from_state": "table_full",
+      "to_state": "scene_invoked_invalid",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "RemoveScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and (GroupID, SceneID) in Scene Table and CurrentScene != 255 and SceneValid == False",
+      "expected_error": null
+    },
+    {
+      "id": "t23_RemoveScene",
+      "from_state": "table_full",
+      "to_state": "table_full",
+      "trigger_type": "command",
+      "command_id": 2,
+      "command_name": "RemoveScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "GroupID != 0 and GroupID not in Group Table",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t24_RemoveAllScenes",
+      "from_state": "empty_no_scene_invoked",
+      "to_state": "empty_no_scene_invoked",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "RemoveAllScenes",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        }
+      ],
+      "guard": "GroupID == 0 or GroupID in Group Table",
+      "expected_error": null
+    },
+    {
+      "id": "t25_RemoveAllScenes",
+      "from_state": "scenes_stored_none_invoked",
+      "to_state": "empty_no_scene_invoked",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "RemoveAllScenes",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and all stored scenes belong to GroupID",
+      "expected_error": null
+    },
+    {
+      "id": "t26_RemoveAllScenes",
+      "from_state": "scenes_stored_none_invoked",
+      "to_state": "scenes_stored_none_invoked",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "RemoveAllScenes",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and scenes exist for other groups",
+      "expected_error": null
+    },
+    {
+      "id": "t27_RemoveAllScenes",
+      "from_state": "scene_active_valid",
+      "to_state": "scene_active_valid",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "RemoveAllScenes",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and scenes exist for other groups",
+      "expected_error": null
+    },
+    {
+      "id": "t28_RemoveAllScenes",
+      "from_state": "scene_active_valid",
+      "to_state": "empty_scene_active_valid",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "RemoveAllScenes",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and all stored scenes belong to GroupID",
+      "expected_error": null
+    },
+    {
+      "id": "t29_RemoveAllScenes",
+      "from_state": "scene_invoked_invalid",
+      "to_state": "scene_invoked_invalid",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "RemoveAllScenes",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        }
+      ],
+      "guard": "GroupID == 0 or GroupID in Group Table",
+      "expected_error": null
+    },
+    {
+      "id": "t30_RemoveAllScenes",
+      "from_state": "table_full",
+      "to_state": "empty_no_scene_invoked",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "RemoveAllScenes",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and all stored scenes belong to GroupID",
+      "expected_error": null
+    },
+    {
+      "id": "t31_RemoveAllScenes",
+      "from_state": "table_full",
+      "to_state": "scenes_stored_none_invoked",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "RemoveAllScenes",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and scenes for GroupID exist and scenes exist for other groups",
+      "expected_error": null
+    },
+    {
+      "id": "t32_RemoveAllScenes",
+      "from_state": "table_full",
+      "to_state": "table_full",
+      "trigger_type": "command",
+      "command_id": 3,
+      "command_name": "RemoveAllScenes",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and no scenes belong to GroupID",
+      "expected_error": null
+    },
+    {
+      "id": "t33_StoreScene",
+      "from_state": "empty_no_scene_invoked",
+      "to_state": "scenes_stored_none_invoked",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "StoreScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and RemainingCapacity > 1",
+      "expected_error": null
+    },
+    {
+      "id": "t34_StoreScene",
+      "from_state": "empty_no_scene_invoked",
+      "to_state": "table_full",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "StoreScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and RemainingCapacity == 1",
+      "expected_error": null
+    },
+    {
+      "id": "t35_StoreScene",
+      "from_state": "empty_no_scene_invoked",
+      "to_state": "empty_no_scene_invoked",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "StoreScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "GroupID != 0 and GroupID not in Group Table",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t36_StoreScene",
+      "from_state": "scenes_stored_none_invoked",
+      "to_state": "scenes_stored_none_invoked",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "StoreScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and (scene exists for (GroupID, SceneID) or RemainingCapacity > 1)",
+      "expected_error": null
+    },
+    {
+      "id": "t37_StoreScene",
+      "from_state": "scenes_stored_none_invoked",
+      "to_state": "table_full",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "StoreScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and scene does not exist for (GroupID, SceneID) and RemainingCapacity == 1",
+      "expected_error": null
+    },
+    {
+      "id": "t38_StoreScene",
+      "from_state": "scene_active_valid",
+      "to_state": "scene_active_valid",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "StoreScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and (scene exists for (GroupID, SceneID) or RemainingCapacity > 0)",
+      "expected_error": null
+    },
+    {
+      "id": "t39_StoreScene",
+      "from_state": "scene_invoked_invalid",
+      "to_state": "scene_invoked_invalid",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "StoreScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and (scene exists for (GroupID, SceneID) or RemainingCapacity > 0)",
+      "expected_error": null
+    },
+    {
+      "id": "t40_StoreScene",
+      "from_state": "table_full",
+      "to_state": "table_full",
+      "trigger_type": "command",
+      "command_id": 4,
+      "command_name": "StoreScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and scene already exists for (GroupID, SceneID)",
+      "expected_error": null
+    },
+    {
+      "id": "t41_RecallScene",
+      "from_state": "empty_no_scene_invoked",
+      "to_state": "empty_no_scene_invoked",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "RecallScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint32",
+          "constraint": "0..60000000,null",
+          "invalid_values": [
+            "60000001..4294967294"
+          ]
+        }
+      ],
+      "guard": "GroupID == 0 or GroupID in Group Table",
+      "expected_error": "NOT_FOUND"
+    },
+    {
+      "id": "t42_RecallScene",
+      "from_state": "scenes_stored_none_invoked",
+      "to_state": "scene_active_valid",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "RecallScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint32",
+          "constraint": "0..60000000,null",
+          "invalid_values": [
+            "60000001..4294967294"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and (GroupID, SceneID) in Scene Table",
+      "expected_error": null
+    },
+    {
+      "id": "t43_RecallScene",
+      "from_state": "scenes_stored_none_invoked",
+      "to_state": "scenes_stored_none_invoked",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "RecallScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint32",
+          "constraint": "0..60000000,null",
+          "invalid_values": [
+            "60000001..4294967294"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and (GroupID, SceneID) not in Scene Table",
+      "expected_error": "NOT_FOUND"
+    },
+    {
+      "id": "t44_RecallScene",
+      "from_state": "scene_active_valid",
+      "to_state": "scene_active_valid",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "RecallScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint32",
+          "constraint": "0..60000000,null",
+          "invalid_values": [
+            "60000001..4294967294"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and (GroupID, SceneID) in Scene Table",
+      "expected_error": null
+    },
+    {
+      "id": "t45_RecallScene",
+      "from_state": "scene_invoked_invalid",
+      "to_state": "scene_active_valid",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "RecallScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint32",
+          "constraint": "0..60000000,null",
+          "invalid_values": [
+            "60000001..4294967294"
+          ]
+        }
+      ],
+      "guard": "SceneCount > 0 and (GroupID == 0 or GroupID in Group Table) and (GroupID, SceneID) in Scene Table",
+      "expected_error": null
+    },
+    {
+      "id": "t46_RecallScene",
+      "from_state": "scene_invoked_invalid",
+      "to_state": "scene_invoked_invalid",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "RecallScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint32",
+          "constraint": "0..60000000,null",
+          "invalid_values": [
+            "60000001..4294967294"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and (GroupID, SceneID) not in Scene Table",
+      "expected_error": "NOT_FOUND"
+    },
+    {
+      "id": "t47_RecallScene",
+      "from_state": "table_full",
+      "to_state": "scene_active_valid",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "RecallScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint32",
+          "constraint": "0..60000000,null",
+          "invalid_values": [
+            "60000001..4294967294"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and (GroupID, SceneID) in Scene Table",
+      "expected_error": null
+    },
+    {
+      "id": "t48_RecallScene",
+      "from_state": "table_full",
+      "to_state": "table_full",
+      "trigger_type": "command",
+      "command_id": 5,
+      "command_name": "RecallScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": []
+        },
+        {
+          "name": "SceneID",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "TransitionTime",
+          "type": "uint32",
+          "constraint": "0..60000000,null",
+          "invalid_values": [
+            "60000001..4294967294"
+          ]
+        }
+      ],
+      "guard": "(GroupID == 0 or GroupID in Group Table) and (GroupID, SceneID) not in Scene Table",
+      "expected_error": "NOT_FOUND"
+    },
+    {
+      "id": "t49_GetSceneMembership",
+      "from_state": "empty_no_scene_invoked",
+      "to_state": "empty_no_scene_invoked",
+      "trigger_type": "command",
+      "command_id": 6,
+      "command_name": "GetSceneMembership",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        }
+      ],
+      "guard": "GroupID == 0 or GroupID in Group Table",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t50_GetSceneMembership",
+      "from_state": "scenes_stored_none_invoked",
+      "to_state": "scenes_stored_none_invoked",
+      "trigger_type": "command",
+      "command_id": 6,
+      "command_name": "GetSceneMembership",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        }
+      ],
+      "guard": "GroupID == 0 or GroupID in Group Table",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t51_GetSceneMembership",
+      "from_state": "scene_active_valid",
+      "to_state": "scene_active_valid",
+      "trigger_type": "command",
+      "command_id": 6,
+      "command_name": "GetSceneMembership",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        }
+      ],
+      "guard": "GroupID == 0 or GroupID in Group Table",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t52_GetSceneMembership",
+      "from_state": "scene_invoked_invalid",
+      "to_state": "scene_invoked_invalid",
+      "trigger_type": "command",
+      "command_id": 6,
+      "command_name": "GetSceneMembership",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        }
+      ],
+      "guard": "GroupID == 0 or GroupID in Group Table",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t53_GetSceneMembership",
+      "from_state": "table_full",
+      "to_state": "table_full",
+      "trigger_type": "command",
+      "command_id": 6,
+      "command_name": "GetSceneMembership",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "GroupID",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero GroupID not in Group Table"
+          ]
+        }
+      ],
+      "guard": "GroupID == 0 or GroupID in Group Table",
+      "expected_error": "INVALID_COMMAND"
+    },
+    {
+      "id": "t54_CopyScene",
+      "from_state": "empty_no_scene_invoked",
+      "to_state": "empty_no_scene_invoked",
+      "trigger_type": "command",
+      "command_id": 64,
+      "command_name": "CopyScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Mode",
+          "type": "CopyModeBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "GroupIdentifierFrom",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero value not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneIdentifierFrom",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "GroupIdentifierTo",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero value not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneIdentifierTo",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "Mode eq 1 (CopyAllScenes=1); GroupIdentifierFrom and GroupIdentifierTo are 0 or exist in Group Table",
+      "expected_error": null
+    },
+    {
+      "id": "t55_CopyScene",
+      "from_state": "scenes_stored_none_invoked",
+      "to_state": "scenes_stored_none_invoked",
+      "trigger_type": "command",
+      "command_id": 64,
+      "command_name": "CopyScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Mode",
+          "type": "CopyModeBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "GroupIdentifierFrom",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero value not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneIdentifierFrom",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "GroupIdentifierTo",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero value not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneIdentifierTo",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "GroupIdentifierFrom and GroupIdentifierTo are 0 or exist in Group Table; if Mode eq 0 then (GroupIdentifierFrom, SceneIdentifierFrom) exists in Scene Table; RemainingCapacity remains gt 0 after copy",
+      "expected_error": null
+    },
+    {
+      "id": "t56_CopyScene",
+      "from_state": "scene_active_valid",
+      "to_state": "scene_active_valid",
+      "trigger_type": "command",
+      "command_id": 64,
+      "command_name": "CopyScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Mode",
+          "type": "CopyModeBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "GroupIdentifierFrom",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero value not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneIdentifierFrom",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "GroupIdentifierTo",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero value not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneIdentifierTo",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "GroupIdentifierFrom and GroupIdentifierTo are 0 or exist in Group Table; if Mode eq 0 then (GroupIdentifierFrom, SceneIdentifierFrom) exists in Scene Table; sufficient RemainingCapacity or target scene already exists and is replaced",
+      "expected_error": null
+    },
+    {
+      "id": "t57_CopyScene",
+      "from_state": "scene_invoked_invalid",
+      "to_state": "scene_invoked_invalid",
+      "trigger_type": "command",
+      "command_id": 64,
+      "command_name": "CopyScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Mode",
+          "type": "CopyModeBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "GroupIdentifierFrom",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero value not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneIdentifierFrom",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "GroupIdentifierTo",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero value not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneIdentifierTo",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "GroupIdentifierFrom and GroupIdentifierTo are 0 or exist in Group Table; if Mode eq 0 then SceneCount gt 0 and (GroupIdentifierFrom, SceneIdentifierFrom) exists in Scene Table; sufficient RemainingCapacity or target scene already exists and is replaced",
+      "expected_error": null
+    },
+    {
+      "id": "t58_CopyScene",
+      "from_state": "table_full",
+      "to_state": "table_full",
+      "trigger_type": "command",
+      "command_id": 64,
+      "command_name": "CopyScene",
+      "attribute_id": null,
+      "parameters": [
+        {
+          "name": "Mode",
+          "type": "CopyModeBitmap",
+          "constraint": "0,1",
+          "invalid_values": [
+            "2..255"
+          ]
+        },
+        {
+          "name": "GroupIdentifierFrom",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero value not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneIdentifierFrom",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        },
+        {
+          "name": "GroupIdentifierTo",
+          "type": "group-id",
+          "constraint": "0..65535",
+          "invalid_values": [
+            "non-zero value not in Group Table"
+          ]
+        },
+        {
+          "name": "SceneIdentifierTo",
+          "type": "uint8",
+          "constraint": "0..254",
+          "invalid_values": [
+            "255"
+          ]
+        }
+      ],
+      "guard": "GroupIdentifierFrom and GroupIdentifierTo are 0 or exist in Group Table; if Mode eq 0 then (GroupIdentifierFrom, SceneIdentifierFrom) exists in Scene Table; destination scene entry already exists and is replaced",
+      "expected_error": null
+    }
+  ],
+  "models": [
+    "gemini-4-hydrogen"
+  ],
+  "spec": "matter1.4-cluster.pdf"
+}

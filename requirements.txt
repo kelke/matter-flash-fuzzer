@@ -1,0 +1,6 @@
+google-genai==3.6.1
+python-dotenv==1.2.4
+websockets==17.4
+# Matter 1.4 Spec
+home-assistant-chip-clusters==2025.7.0
+pydantic==2.14.4
